@@ -220,7 +220,10 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	int maxcountbin = 0;
 	for(int i = 0; i < 900; i++){
 		int count = myhisto -> GetBinContent(i);
-		if (count > maxcount) maxcountbin = i;
+		if (count > maxcount){ 
+			maxcountbin = i;
+			maxcount = count;
+		}
 	}
 	maxcount = maxcount/2;
 
@@ -229,7 +232,7 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 
 	double delta = 100000;
 	for(int i = 0; i < maxcountbin; i++){
-		double temp = maxcount - myhisto -> GetBinContent(i);
+		double temp = abs(maxcount - myhisto -> GetBinContent(i));
 		if(delta > temp){
 			delta = temp;
 			minbin = i;
@@ -238,7 +241,7 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 
 	delta = 100000;
 	for(int i = maxcountbin; i < 900 ; i++){
-		double temp = maxcount - myhisto -> GetBinContent(i);
+		double temp = abs(maxcount - myhisto -> GetBinContent(i));
 		if(delta > temp){
 			delta = temp;
 			maxbin = i;
@@ -248,6 +251,8 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	*min = myhisto -> GetBinCenter(minbin);
 	*max = myhisto -> GetBinCenter(maxbin);
 
+	cout << "\nmaxcount: " << maxcount << endl;
+	cout << "bin: " << minbin << " - " << maxcountbin << " - " << maxbin << endl;
 }
 
 double propagazione(double x, double errx, double erry, double vth, double tau, double errvth, double errtau, double cov_tau_vth){
