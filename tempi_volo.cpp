@@ -189,6 +189,8 @@ double myFun(double *x, double *par){
 	return C+A*log(B/(D-B));
 }
 */
+/*
+	//setlimits 
 bool fun1 = true;
 void setlimits(TH1D * myhisto, double * min, double * max){	
 	TF1 * g = new TF1("g","landau",85,95);	
@@ -210,6 +212,42 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	}
 	cout << "media: " << mean << "  sigma: " << sigma << endl;
 	return;
+}
+*/
+	//setlimits con FWHM
+void setlimits(TH1D * myhisto, double * min, double * max){
+	double maxcount = 0;
+	int maxcountbin = 0;
+	for(int i = 0; i < 900; i++){
+		int count = myhisto -> GetBinContent(i);
+		if (count > maxcount) maxcountbin = i;
+	}
+	maxcount = maxcount/2;
+
+	int minbin;
+	int maxbin;
+
+	double delta = 100000;
+	for(int i = 0; i < maxcountbin; i++){
+		double temp = maxcount - myhisto -> GetBinContent(i);
+		if(delta > temp){
+			delta = temp;
+			minbin = i;
+		}
+	}
+
+	delta = 100000;
+	for(int i = maxcountbin; i < 900 ; i++){
+		double temp = maxcount - myhisto -> GetBinContent(i);
+		if(delta > temp){
+			delta = temp;
+			maxbin = i;
+		}
+	}
+
+	*min = myhisto -> GetBinCenter(minbin);
+	*max = myhisto -> GetBinCenter(maxbin);
+
 }
 
 double propagazione(double x, double errx, double erry, double vth, double tau, double errvth, double errtau, double cov_tau_vth){
