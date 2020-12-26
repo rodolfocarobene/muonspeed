@@ -736,7 +736,7 @@ int main(int argc, char *argv[]){
 
 	cout << "\n\n-------------------------------------------\n" << endl;
 																										//GetParameter(2)/sqrt(th_tempi_corr -> GetEntries())
-	cout << "stima del tempo di volo dei muoni: " << mygaus -> GetParameter(1) << " +- " << mygaus -> GetParameter(2) <<  " ns " << endl;
+	cout << "stima del tempo di volo dei muoni: " << mygaus -> GetParameter(1) << " +- " << mygaus -> GetParameter(2)/sqrt(th_tempi_corr -> GetEntries()) <<  " ns " << endl;
 
 
 	myApp.Run();
