@@ -121,7 +121,7 @@ class evento{
 vector<evento*> v_eventi;
 
 bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
-	double scal1, scal2, scal3, scal4, scal5, scal6, scal7, scal8;
+	double scal1;
 	ifstream Infile;
 	Infile.open(myFile, fstream::in);
 	if (Infile.good () == false){
@@ -140,25 +140,6 @@ bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
 	return true;
 }
 
-bool leggi_dati2(vector<double> & ampiezzas1, int channel, char* myFile){
-	double scal1, scal2, scal3, scal4, scal5, scal6, scal7, scal8;
-	ifstream Infile;
-	Infile.open(myFile, fstream::in);
-	if (Infile.good () == false){
-		return false;
-	}
-	cout << "Leggo file di dati " << myFile << endl;
-	while(true){
-		Infile >> scal1;
-		ampiezzas1.push_back(scal1);
-		if (Infile.eof() == true) break;
-	}
-	Infile.close();
-	cout << "Numero dati: " << ampiezzas1.size() << endl;
-	return true;
-}
-
-
 		//	funzione standard
 double myFun(double *x, double *par){		
 	double A = par[0];		//tau
@@ -167,7 +148,6 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return A*log(D/(D-B))+C;
 }
-
 
 /*
 		//	funzione nuova loglog
@@ -190,6 +170,7 @@ double myFun(double *x, double *par){
 }
 */
 /*
+
 	//setlimits 
 bool fun1 = true;
 void setlimits(TH1D * myhisto, double * min, double * max){	
@@ -255,24 +236,6 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	cout << "bin: " << minbin << " - " << maxcountbin << " - " << maxbin << endl;
 }
 
-double propagazione(double x, double errx, double erry, double vth, double tau, double errvth, double errtau, double cov_tau_vth){
-	double v_y = pow(erry,2);
-	double v_x = pow(errx,2);
-	double v_tau = pow(errtau,2);
-	double v_vth = pow(errvth,2);
-
-	double v_diff = v_x + v_vth;
-	double v_frac = v_x / pow(x - vth,2) + pow(x,2)*v_diff/pow(x-vth,4)-2*x/pow(x-vth,3);
-
-	double A = v_y;
-	double B = pow(log(x/(x-vth)),2)*v_tau;
-	double C = pow(tau/(x/(x-vth)),2)*v_frac;
-	double D = -2 / (x - vth) * cov_tau_vth;
-
-	double fin = A + B + C + D;
-
-	return  sqrt(fin);
-}
 
 void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
@@ -356,7 +319,7 @@ int main(int argc, char *argv[]){
 	string path_tdc = path + TDC_FILE;
 
 	if(!(leggi_dati(ampiezzas1, CHAN_ADC0, &path_adc0[0]))) return 1;
-	if(!(leggi_dati2(tempi, CHAN_TDC, &path_tdc[0]))) return 1;
+	if(!(leggi_dati(tempi, CHAN_TDC, &path_tdc[0]))) return 1;
 	if(!(leggi_dati(ampiezzas2, CHAN_ADC1, &path_adc1[0]))) return 1;
 
 	for(int i = 0; i < tempi.size(); i++){
@@ -413,11 +376,9 @@ int main(int argc, char *argv[]){
 	}
 
 	c_adc0 -> cd();
-	h_adc0 -> SetFillColor(kCyan);
 	h_adc0 -> Draw();
 
 	c_adc1 -> cd();
-	h_adc1 -> SetFillColor(kCyan);
 	h_adc1 -> Draw();
 
 	c_2d -> cd();
@@ -576,17 +537,17 @@ int main(int argc, char *argv[]){
 	g_adc1v2 -> SetMarkerColor(kBlue);
 
 
-	double tau0 = fun_adc0 -> GetParameter(0);
-	double e_tau0 = fun_adc0 -> GetParError(0);
-	double vth0 = fun_adc0 -> GetParameter(1);
-	double e_vth0 = fun_adc0 -> GetParError(1);
-	double off0 = fun_adc0 -> GetParameter(2);
+	double tau0 	= fun_adc0 -> GetParameter(0);
+	double e_tau0 	= fun_adc0 -> GetParError(0);
+	double vth0 	= fun_adc0 -> GetParameter(1);
+	double e_vth0 	= fun_adc0 -> GetParError(1);
+	double off0 	= fun_adc0 -> GetParameter(2);
 
-	double tau1 = fun_adc1 -> GetParameter(0);
-	double e_tau1 = fun_adc1 -> GetParError(0);
-	double vth1 = fun_adc1 -> GetParameter(1);
-	double e_vth1 = fun_adc1 -> GetParError(1);
-	double off1 = fun_adc1 -> GetParameter(2);
+	double tau1 	= fun_adc1 -> GetParameter(0);
+	double e_tau1 	= fun_adc1 -> GetParError(0);
+	double vth1 	= fun_adc1 -> GetParameter(1);
+	double e_vth1 	= fun_adc1 -> GetParError(1);
+	double off1 	= fun_adc1 -> GetParameter(2);
 
 
 	TMatrixD cor_0 = r_0 -> GetCorrelationMatrix();
@@ -603,8 +564,6 @@ int main(int argc, char *argv[]){
 
 	cout << "cov0 " << cov_tv_0 << endl;
 	cout << "cov1 " << cov_tv_1 << endl;
-
-	cout << "Delta offset: " << off1 - off0 << " -> "  << (off1 - off0) * CONVERSIONETDC << endl;
 
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
 		double sum = 0;
@@ -677,8 +636,6 @@ int main(int argc, char *argv[]){
 	th_tempi -> GetXaxis() -> SetLimits(0, 100);
 	th_tempi -> GetXaxis() -> SetRangeUser(0, 100);
 
-	th_tempi -> SetFillColor(kCyan);
-
 	for(int i = 0; i < v_eventi.size(); i++){
 		double tdc = v_eventi[i] -> Get_tdc();
 		double adc0 = v_eventi[i] -> Get_adc0();
@@ -696,12 +653,10 @@ int main(int argc, char *argv[]){
 	th_tempi -> Draw();
 
 	//correzione
-	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 60,0, 60);
+	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 60,0, 70);
 
-	th_tempi_corr -> GetXaxis() -> SetLimits(-100, 200);
-	th_tempi_corr -> GetXaxis() -> SetRangeUser(-100, 200);
-
-	th_tempi_corr -> SetFillColor(kCyan);
+	th_tempi_corr -> GetXaxis() -> SetLimits(0, 70);
+	th_tempi_corr -> GetXaxis() -> SetRangeUser(0, 70);
 
 	for(int i = 0; i < v_eventi.size(); i++){
 		double tdc = v_eventi[i] -> Get_tdc_corretto(tau0,vth0,tau1,vth1);
@@ -710,7 +665,6 @@ int main(int argc, char *argv[]){
 		bool adc0_b = adc0 <= maxs1_graph && adc0 >= mins1_graph;
 		bool adc1_b = adc1 <= maxs2_graph && adc1 >= mins2_graph;
 		if(adc0_b && adc1_b) th_tempi_corr -> Fill(tdc * CONVERSIONETDC);
-	//	cout << tdc * CONVERSIONETDC << endl;
 	}
 
 	c_tempi -> cd(2);	
@@ -730,6 +684,9 @@ int main(int argc, char *argv[]){
 	tmedio = tmedio / 1000000000;
 	double c = dist / tmedio;
 	double errc = sqrt(pow(E_DIST/tmedio,2)+pow(c,2)*pow(sigmat,2));
+
+	cout << "\n\n-------------------------------------------\n" << endl;
+	cout << "Delta offset: " << off1 - off0 << " -> "  << (off1 - off0) * CONVERSIONETDC << " ns " << endl;
 
 	cout << "\n\n-------------------------------------------\n" << endl;
 	cout << "stima della velocità dei muoni (m/s): " << c << " +- " << errc << endl;
