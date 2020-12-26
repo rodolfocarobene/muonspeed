@@ -1,0 +1,10 @@
+#ignora tutti gli eseguibili in cartella
+
+finderr
+leggiscaler
+sline
+tempi_volo
+
+#ignora i txt, in quanto file di dati
+
+*.txt
