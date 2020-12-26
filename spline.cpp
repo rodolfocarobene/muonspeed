@@ -80,7 +80,7 @@ double newFun(double *x, double *par){
 	double B = par[1];		//tau
 	double C = par[2];		//offset
 	double w = x[0];
-	return A*(1-exp(-B*(w-C)));
+	return A*(1/exp(-B*(w-C)));
 }
 
 
