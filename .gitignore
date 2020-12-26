@@ -5,6 +5,21 @@ leggiscaler
 spline
 tempi_volo
 
+old/adc_histo
+old/calibrazione_tdc
+old/conteggi_weather
+old/fit_adc
+old/output
+old/sigmoid_fit
+old/sigmoide_o_retta
+old/sim_angolo_2
+old/simulazione
+old/testappend
+old/tot
+old/tot2
+old/strtk.hpp
+old/unite
+
 #ignora i txt, in quanto file di dati
 
 *.TXT
