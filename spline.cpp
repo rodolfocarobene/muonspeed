@@ -67,6 +67,17 @@ double myFun(double *x, double *par){
 	return A*(1-exp((w-C)/B));
 }
 
+double myFunPow(double *x, double *par){		
+	double A = par[0];		//amp
+	double B = par[1];		//tau
+	double C = par[2];		//offset
+	double D = par[3];		//pow
+
+	double w = x[0];
+
+	return A*(1-exp(((w-C)/B) - pow(A,-D)));
+}
+
 double mySigm(double *x, double *par){			
 	double A = par[0];		//amp
 	double B = par[1];		//tau
@@ -114,13 +125,14 @@ int main(int argc, char *argv[]){
 
 
 
-	TF1 * fun_std_0 = new TF1("fun_adc0",myFun, 10,20,3);
-	TF1 * fun_sigm_0 = new TF1("fun_sigm_0",mySigm, 10,20,3);
-	TF1 * fun_new = new TF1("fun_new",newFun, 10,20,3);
+	TF1 * fun_std_0 	= new TF1("fun_std_0",myFun, 26,32,3);
+	TF1 * fun_sigm_0 	= new TF1("fun_sigm_0",mySigm, 26,32,3);
+	TF1 * fun_new 		= new TF1("fun_new",newFun, 26,32,3);
+	TF1 * fun_std_pow 	= new TF1("fun_std_pow",myFunPow, 26,32,4);
 
 
 
-/*
+	/*
 	fun_std_0 -> SetLineColor(kRed);
 
 	fun_std_0 -> SetParName(0, "Amp0");
@@ -134,8 +146,18 @@ int main(int argc, char *argv[]){
 	TVirtualFitter::SetMaxIterations(20000);
 
 	TFitResultPtr r_0 = g_1 -> Fit("fun_std_0", "R S");
+	*/
 
-*/
+	fun_std_pow -> SetLineColor(kRed);
+
+	fun_std_pow -> SetParameter(0,1.5);
+	fun_std_pow -> SetParameter(1,-0.7);
+	fun_std_pow -> SetParameter(2,25);
+	fun_std_pow -> SetParameter(3,-1.5);
+
+	TVirtualFitter::SetMaxIterations(20000);
+
+	TFitResultPtr r_0 = g_1 -> Fit("fun_std_pow", "R S M");
 
 
 	myApp.Run();
