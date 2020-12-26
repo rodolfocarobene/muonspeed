@@ -400,7 +400,7 @@ int main(int argc, char *argv[]){
 
 	TH1D* h_adc0 = new TH1D("ADC S1", "ADC S1", 1000, 0, 1000);	
 	TH1D* h_adc1 = new TH1D("ADC S2", "ADC S2", 1000, 0, 1000);	
-	TH2D* h2_adc01 = new TH2D("ADC S1-S2", "ADC S21-S", 200, 0, 200, 400, 0, 400);
+	TH2D* h2_adc01 = new TH2D("ADC S1-S2", "ADC S21-S", 100, 0, 200, 100, 0, 400);
 
 	for(int i = 0; i < v_eventi.size(); i++){
 		double adc0 = v_eventi[i] -> Get_adc0();
@@ -421,7 +421,7 @@ int main(int argc, char *argv[]){
 	h_adc1 -> Draw();
 
 	c_2d -> cd();
-	h2_adc01 -> Draw("cont4z");
+	h2_adc01 -> Draw("COLZ");
 
 	if (DEBUG == true)	cout << "\nGRAFICO INIZIALE" << endl;
 	//----------------------------------------------------------------------
@@ -469,16 +469,16 @@ int main(int argc, char *argv[]){
 
 	c_graphv1 -> cd();
 
-	g_adc0 -> GetXaxis() -> SetRangeUser(0,300);
-	g_adc1 -> GetXaxis() -> SetRangeUser(0,300);
+	g_adc0 -> GetXaxis() -> SetRangeUser(0,maxs2_graph + 20);
+	g_adc1 -> GetXaxis() -> SetRangeUser(0,maxs2_graph + 20);
 
-	g_adc0 -> GetXaxis() -> SetLimits(0,300);
-	g_adc1 -> GetXaxis() -> SetLimits(0,300);
+	g_adc0 -> GetXaxis() -> SetLimits(0,maxs2_graph + 20);
+	g_adc1 -> GetXaxis() -> SetLimits(0,maxs2_graph + 20);
 
-	g_adc0 -> GetHistogram() -> SetMaximum(340);
-	g_adc0 -> GetHistogram() -> SetMinimum(140);
-	g_adc1 -> GetHistogram() -> SetMaximum(340);
-	g_adc1 -> GetHistogram() -> SetMinimum(140);
+	g_adc0 -> GetHistogram() -> SetMaximum(300);
+	g_adc0 -> GetHistogram() -> SetMinimum(200);
+	g_adc1 -> GetHistogram() -> SetMaximum(300);
+	g_adc1 -> GetHistogram() -> SetMinimum(200);
 
 	g_adc0 -> Draw("AP z");
 	g_adc1 -> Draw("P z same");
@@ -648,16 +648,16 @@ int main(int argc, char *argv[]){
 	}
 
 
-	g_adc0v2 -> GetXaxis() -> SetRangeUser(0,300);
-	g_adc1v2 -> GetXaxis() -> SetRangeUser(0,300);
+	g_adc0v2 -> GetXaxis() -> SetRangeUser(0,maxs2_graph+20);
+	g_adc1v2 -> GetXaxis() -> SetRangeUser(0,maxs2_graph+20);
 
-	g_adc0v2 -> GetXaxis() -> SetLimits(0,300);
-	g_adc1v2 -> GetXaxis() -> SetLimits(0,300);
+	g_adc0v2 -> GetXaxis() -> SetLimits(0,maxs2_graph+20);
+	g_adc1v2 -> GetXaxis() -> SetLimits(0,maxs2_graph+20);
 
-	g_adc0v2 -> GetHistogram() -> SetMaximum(600);
-	g_adc0v2 -> GetHistogram() -> SetMinimum(100);
-	g_adc1v2 -> GetHistogram() -> SetMaximum(600);
-	g_adc1v2 -> GetHistogram() -> SetMinimum(100);
+	g_adc0v2 -> GetHistogram() -> SetMaximum(350);
+	g_adc0v2 -> GetHistogram() -> SetMinimum(200);
+	g_adc1v2 -> GetHistogram() -> SetMaximum(350);
+	g_adc1v2 -> GetHistogram() -> SetMinimum(200);
 
 	g_adc0v2 -> Draw("AP z");
 	g_adc1v2 -> Draw("P z same");
@@ -696,7 +696,7 @@ int main(int argc, char *argv[]){
 	th_tempi -> Draw();
 
 	//correzione
-	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 300,-100, 200);
+	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 60,0, 60);
 
 	th_tempi_corr -> GetXaxis() -> SetLimits(-100, 200);
 	th_tempi_corr -> GetXaxis() -> SetRangeUser(-100, 200);
