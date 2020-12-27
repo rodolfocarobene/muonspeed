@@ -51,8 +51,8 @@ using namespace std;
 #define CONVERSIONETDC 0.1197 + 2.116
 #define CONV_A 0.1197
 #define CONV_B 2.116
-#define ERR_CONV_A 0.0002
-#define ERR_CONV_B 0.002
+#define ERR_CONV_A 0.000537
+#define ERR_CONV_B 0.2389
 
 #define RITARDO 30.6
 #define E_RIT 2
