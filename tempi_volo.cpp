@@ -49,6 +49,11 @@ using namespace std;
 #define E_DIST 0.02
 
 #define CONVERSIONETDC 0.1197 + 2.116
+#define CONV_A 0.1197
+#define CONV_B 2.116
+#define ERR_CONV_A 0.0002
+#define ERR_CONV_B 0.002
+
 #define RITARDO 30.6
 #define E_RIT 2
 
@@ -631,10 +636,10 @@ int main(int argc, char *argv[]){
 	c_tempi -> Divide(2,1);
 
 
-	TH1D* th_tempi = new TH1D("Tempi", "Tempi", 300, -100, 200);
+	TH1D* th_tempi = new TH1D("Tempi", "Tempi", 300, 0, 500);
 
-	th_tempi -> GetXaxis() -> SetLimits(0, 100);
-	th_tempi -> GetXaxis() -> SetRangeUser(0, 100);
+	//th_tempi -> GetXaxis() -> SetLimits(0, 100);
+	//th_tempi -> GetXaxis() -> SetRangeUser(0, 100);
 
 	for(int i = 0; i < v_eventi.size(); i++){
 		double tdc = v_eventi[i] -> Get_tdc();
@@ -642,7 +647,7 @@ int main(int argc, char *argv[]){
 		double adc1 = v_eventi[i] -> Get_adc1();		
 		bool adc0_b = adc0 <= maxs1_graph && adc0 >= mins1_graph;
 		bool adc1_b = adc1 <= maxs2_graph && adc1 >= mins2_graph;
-		if(adc0_b && adc1_b) th_tempi -> Fill(tdc * CONVERSIONETDC);
+		if(adc0_b && adc1_b) th_tempi -> Fill(tdc);
 	}
 
 	c_tempi->cd(1);	
@@ -653,10 +658,10 @@ int main(int argc, char *argv[]){
 	th_tempi -> Draw();
 
 	//correzione
-	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 60,0, 70);
+	TH1D* th_tempi_corr = new TH1D("Tempi corretti", "Tempi corretti", 300,0, 500);
 
-	th_tempi_corr -> GetXaxis() -> SetLimits(0, 70);
-	th_tempi_corr -> GetXaxis() -> SetRangeUser(0, 70);
+	//th_tempi_corr -> GetXaxis() -> SetLimits(0, 70);
+	//th_tempi_corr -> GetXaxis() -> SetRangeUser(0, 70);
 
 	for(int i = 0; i < v_eventi.size(); i++){
 		double tdc = v_eventi[i] -> Get_tdc_corretto(tau0,vth0,tau1,vth1);
@@ -664,7 +669,7 @@ int main(int argc, char *argv[]){
 		double adc1 = v_eventi[i] -> Get_adc1();		
 		bool adc0_b = adc0 <= maxs1_graph && adc0 >= mins1_graph;
 		bool adc1_b = adc1 <= maxs2_graph && adc1 >= mins2_graph;
-		if(adc0_b && adc1_b) th_tempi_corr -> Fill(tdc * CONVERSIONETDC);
+		if(adc0_b && adc1_b) th_tempi_corr -> Fill(tdc);
 	}
 
 	c_tempi -> cd(2);	
@@ -679,11 +684,14 @@ int main(int argc, char *argv[]){
 
 	TF1 * mygaus = new TF1("mygaus","gaus",0,100);	
 	th_tempi_corr -> Fit("mygaus", "L M E");
-	double tmedio = mygaus -> GetParameter(1) - RITARDO;
+	double tmedio = mygaus -> GetParameter(1) * CONVERSIONETDC - RITARDO;
 	double sigmat = sqrt(pow(mygaus -> GetParameter(2),2)+pow(E_RIT,2)) / 1000000000;
 	tmedio = tmedio / 1000000000;
 	double c = dist / tmedio;
 	double errc = sqrt(pow(E_DIST/tmedio,2)+pow(c,2)*pow(sigmat,2));
+
+	double errt = (mygaus -> GetParameter(2)/sqrt(th_tempi_corr -> GetEntries()))*CONVERSIONETDC;
+	double errc2 = pow(CONV_A*errt,2)+pow((tmedio - RITARDO)*ERR_CONV_A,2)+pow(ERR_CONV_B,2);
 
 	cout << "\n\n-------------------------------------------\n" << endl;
 	cout << "Delta offset: " << off1 - off0 << " -> "  << (off1 - off0) * CONVERSIONETDC << " ns " << endl;
@@ -693,7 +701,8 @@ int main(int argc, char *argv[]){
 
 	cout << "\n\n-------------------------------------------\n" << endl;
 																										//GetParameter(2)/sqrt(th_tempi_corr -> GetEntries())
-	cout << "stima del tempo di volo dei muoni: " << mygaus -> GetParameter(1) << " +- " << mygaus -> GetParameter(2)/sqrt(th_tempi_corr -> GetEntries()) <<  " ns " << endl;
+	cout << "stima del tempo di volo dei muoni: " << mygaus -> GetParameter(1) * CONVERSIONETDC << " +- " << 
+			 sqrt(errc2) <<  " ns " << endl;
 
 
 	myApp.Run();
