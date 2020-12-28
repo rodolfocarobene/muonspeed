@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <random> 
 #include <vector> 
 
 #include "TApplication.h"
@@ -27,6 +28,7 @@ using namespace std;
 #define DEBUG false
 
 #define AUTOLIMIT true
+#define RAND true
 
 #define ADC0_FILE "datiADC0.txt"
 #define ADC1_FILE "datiADC1.txt"
@@ -258,8 +260,20 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 	}
 }
 
-int main(int argc, char *argv[]){
+random_device rd; // obtain a random number from hardware
+mt19937 gen(rd());
+uniform_real_distribution<> random_tau(-20, 0);
+uniform_real_distribution<> random_vth(0, 35);
 
+double rand_tau(){
+	return random_tau(gen);
+}
+
+double rand_vth(){
+	return random_vth(gen);
+}
+
+int main(int argc, char *argv[]){
 	if (DEBUG == true)	cout << "\nLETTURA DEI FILE" << endl;
 	//----------------------------------------------------------------------
 	// 						    lettura dei file
@@ -339,7 +353,6 @@ int main(int argc, char *argv[]){
 	// 						   grafico iniziale
 	//----------------------------------------------------------------------
 
-	TCanvas* c_graphv1 = new TCanvas("c_graphv1","c_graphv1",0,0,700,500);
 	TGraphErrors * g_adc0 = new TGraphErrors;
 	TGraphErrors * g_adc1 = new TGraphErrors;
 
@@ -378,22 +391,7 @@ int main(int argc, char *argv[]){
 
 	graficoiniziale(mins1_graph,maxs1_graph,g_adc0,mins2_graph,maxs2_graph,g_adc1);
 
-	c_graphv1 -> cd();
-
-	g_adc0 -> GetXaxis() -> SetRangeUser(0,maxs2_graph + 20);
-	g_adc1 -> GetXaxis() -> SetRangeUser(0,maxs2_graph + 20);
-
-	g_adc0 -> GetXaxis() -> SetLimits(0,maxs2_graph + 20);
-	g_adc1 -> GetXaxis() -> SetLimits(0,maxs2_graph + 20);
-
-	g_adc0 -> GetHistogram() -> SetMaximum(300);
-	g_adc0 -> GetHistogram() -> SetMinimum(200);
-	g_adc1 -> GetHistogram() -> SetMaximum(300);
-	g_adc1 -> GetHistogram() -> SetMinimum(200);
-
-	g_adc0 -> Draw("AP z");
-	g_adc1 -> Draw("P z same");
-
+	
 	if (DEBUG == true)	cout << "\nFIT" << endl;
 	//----------------------------------------------------------------------
 	// 						         fit
@@ -402,18 +400,17 @@ int main(int argc, char *argv[]){
 	double tau;
 	double vth;
 	double off;		
-
-	double start_tau = -20;
+	double start_tau = -16;
 	double start_off = 10;
-	double start_vth = 10;
+	double start_vth = 0.0001;
 
 	double step_tau = 1;
 	double step_off = 1;
-	double step_vth = 1;
+	double step_vth = 0.001;
 
-	double max_tau = 1;
+	double max_tau = 0;
 	double max_off = 400;
-	double max_vth = 30;
+	double max_vth = 0.01;
 
 	double best_tau;
 	double best_off;
@@ -559,14 +556,103 @@ int main(int argc, char *argv[]){
 
 	legend_tau -> Draw("same");
 
-	for(tau = start_tau; tau < max_tau; tau = tau + step_tau){
-		for(vth = start_vth; vth < max_vth; vth = vth + step_vth){
-			for(off = start_off; off < max_off; off = off + step_off){
+	if (RAND == false){
+		for(tau = start_tau; tau < max_tau; tau = tau + step_tau){
+			for(vth = start_vth; vth < max_vth; vth = vth + step_vth){
+				cout << "Tentativo: \tTau = " << tau << " Vth = " << vth << endl;
+				for(off = start_off; off < max_off; off = off + step_off){
 
+					myFun_golf -> SetParameter(0, tau);
+					myFun_golf -> SetParameter(1, vth);
+					myFun_golf -> SetParameter(2, off);
+
+					TFitResultPtr fit_result = g_adc1 -> Fit("myFun_golf", "Q S");
+
+					double result_tau = myFun_golf -> GetParameter(0);
+					double result_vth = myFun_golf -> GetParameter(1);
+					double result_off = myFun_golf -> GetParameter(2);
+
+					int res = fit_result -> CovMatrixStatus();
+					if (res != 0 && res != 2 && result_off > 0){
+						double prob = fit_result -> Prob();
+
+						if (prob > best_prob){
+							best_prob = prob;
+							best_tau = tau;
+							best_vth = vth;
+							best_off = off;
+
+							cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
+						}
+
+						int N;
+						if (prob < 0.05){
+							N = myGraph_off_liv0 -> GetN();
+							myGraph_off_liv0 -> SetPoint(N,off,result_off);
+
+							N = myGraph_vth_0 -> GetN();
+							myGraph_vth_0 -> SetPoint(N,vth,result_off);
+
+							N = myGraph_tau_0 -> GetN();
+							myGraph_tau_0 -> SetPoint(N,tau,result_off);
+						}
+						else if(prob < 0.20){
+							N = myGraph_off_liv1 -> GetN();
+							myGraph_off_liv1 -> SetPoint(N,off,result_off);
+
+							N = myGraph_vth_1 -> GetN();
+							myGraph_vth_1 -> SetPoint(N,vth,result_off);
+
+							N = myGraph_tau_1 -> GetN();
+							myGraph_tau_1 -> SetPoint(N,tau,result_off);
+
+						}
+						else if (prob < 0.75){
+							N = myGraph_off_liv2 -> GetN();
+							myGraph_off_liv2 -> SetPoint(N,off,result_off);
+
+							N = myGraph_vth_2 -> GetN();
+							myGraph_vth_2 -> SetPoint(N,vth,result_off);
+
+							N = myGraph_tau_2 -> GetN();
+							myGraph_tau_2 -> SetPoint(N,tau,result_off);
+
+						}
+						else{
+							N = myGraph_off_liv3 -> GetN();
+							myGraph_off_liv3 -> SetPoint(N,off,result_off);
+
+							N = myGraph_vth_3 -> GetN();
+							myGraph_vth_3 -> SetPoint(N,vth,result_off);
+
+							N = myGraph_tau_3 -> GetN();
+							myGraph_tau_3 -> SetPoint(N,tau,result_off);
+
+						}
+						
+					}
+				
+
+					myCanvas_off -> Modified();
+					myCanvas_off -> Update();
+					myCanvas_vth -> Modified();
+					myCanvas_vth -> Update();
+					myCanvas_tau -> Modified();
+					myCanvas_tau -> Update();
+				}
+			}
+		}
+	}
+	else{
+		while(true == true){
+			tau = rand_tau();
+			vth = rand_vth();
+
+			cout << "Tentativo: \tTau = " << tau << " Vth = " << vth << endl;
+			for(off = start_off; off < max_off; off = off + step_off){
 				myFun_golf -> SetParameter(0, tau);
 				myFun_golf -> SetParameter(1, vth);
 				myFun_golf -> SetParameter(2, off);
-
 				TFitResultPtr fit_result = g_adc1 -> Fit("myFun_golf", "Q S");
 
 				double result_tau = myFun_golf -> GetParameter(0);
@@ -583,7 +669,7 @@ int main(int argc, char *argv[]){
 						best_vth = vth;
 						best_off = off;
 
-						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << endl;
+						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
 					}
 
 					int N;
@@ -630,18 +716,18 @@ int main(int argc, char *argv[]){
 						myGraph_tau_3 -> SetPoint(N,tau,result_off);
 
 					}
-					
+						
 				}
-			
+					
 
 				myCanvas_off -> Modified();
 				myCanvas_off -> Update();
+				myCanvas_vth -> Modified();
+				myCanvas_vth -> Update();
+				myCanvas_tau -> Modified();
+				myCanvas_tau -> Update();
 			}
-			myCanvas_vth -> Modified();
-			myCanvas_vth -> Update();
 		}
-		myCanvas_tau -> Modified();
-		myCanvas_tau -> Update();
 	}
 	
 
