@@ -1,6 +1,13 @@
 //	c++ -o correzione_golf correzione_golf.cpp `root-config --cflags --glibs`
 // ./correzione_golf /mnt/c/Users/Rodolfo/Desktop/calibrazione/3/ 
 
+/*
+*	Il programma serve a trovare i migliori parametri iniziale per il fit con l'inversa della sigmoide.
+*
+*
+*
+*/
+
 #include <iostream>
 #include <fstream>
 #include <cmath>
@@ -29,6 +36,8 @@ using namespace std;
 
 #define AUTOLIMIT true
 #define RAND true
+
+#define GADC g_adc0   
 
 #define ADC0_FILE "datiADC0.txt"
 #define ADC1_FILE "datiADC1.txt"
@@ -134,7 +143,7 @@ double myFun(double *x, double *par){
 }
 
 
-
+/*
 	//setlimits 
 bool fun1 = true;
 void setlimits(TH1D * myhisto, double * min, double * max){	
@@ -158,8 +167,8 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	cout << "media: " << mean << "  sigma: " << sigma << endl;
 	return;
 }
+*/
 
-/*
 	//setlimits con FWHM
 void setlimits(TH1D * myhisto, double * min, double * max){
 	double maxcount = 0;
@@ -200,7 +209,7 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	cout << "\nmaxcount: " << maxcount << endl;
 	cout << "bin: " << minbin << " - " << maxcountbin << " - " << maxbin << endl;
 }
-*/
+
 
 void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
@@ -262,8 +271,8 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 
 random_device rd; // obtain a random number from hardware
 mt19937 gen(rd());
-uniform_real_distribution<> random_tau(-20, 0);
-uniform_real_distribution<> random_vth(0, 35);
+uniform_real_distribution<> random_tau(-30, 0);
+uniform_real_distribution<> random_vth(0, 60);
 
 double rand_tau(){
 	return random_tau(gen);
@@ -556,6 +565,92 @@ int main(int argc, char *argv[]){
 
 	legend_tau -> Draw("same");
 
+	TCanvas* auto_myCanvas_tau = new TCanvas("auto_myCanvas_tau","auto_myCanvas_tau",0,0,700,500);
+	TGraphErrors * auto_myGraph_tau_0 = new TGraphErrors;
+	auto_myGraph_tau_0 -> Draw("A P");
+	TGraphErrors * auto_myGraph_tau_1 = new TGraphErrors;
+	auto_myGraph_tau_1 -> Draw("same P");
+	TGraphErrors * auto_myGraph_tau_2 = new TGraphErrors;
+	auto_myGraph_tau_2 -> Draw("same P");
+	TGraphErrors * auto_myGraph_tau_3 = new TGraphErrors;
+	auto_myGraph_tau_3 -> Draw("same P");
+
+	auto_myGraph_tau_0 -> SetMarkerStyle(kCircle);
+	auto_myGraph_tau_1 -> SetMarkerStyle(kCircle);
+	auto_myGraph_tau_2 -> SetMarkerStyle(kCircle);
+	auto_myGraph_tau_3 -> SetMarkerStyle(kCircle);
+
+	auto_myGraph_tau_0 -> SetLineColor(kCyan);
+	auto_myGraph_tau_1 -> SetLineColor(kBlue);
+	auto_myGraph_tau_2 -> SetLineColor(kMagenta);
+	auto_myGraph_tau_3 -> SetLineColor(kRed);
+
+	auto_myGraph_tau_0 -> SetMarkerColor(kCyan);
+	auto_myGraph_tau_1 -> SetMarkerColor(kBlue);
+	auto_myGraph_tau_2 -> SetMarkerColor(kMagenta);
+	auto_myGraph_tau_3 -> SetMarkerColor(kRed);
+
+	auto_myGraph_tau_0 -> SetFillColor(kCyan);
+	auto_myGraph_tau_1 -> SetFillColor(kBlue);
+	auto_myGraph_tau_2 -> SetFillColor(kMagenta);
+	auto_myGraph_tau_3 -> SetFillColor(kRed);
+
+	TLegend* auto_legend_tau = new TLegend(.1,.7,.3,.9);
+	TLegendEntry* auto_entry_tau_0 = auto_legend_tau -> AddEntry("auto_myGraph_tau_0","Prob < 0.05");
+	TLegendEntry* auto_entry_tau_1 = auto_legend_tau -> AddEntry("auto_myGraph_tau_1","Prob < 0.20");
+	TLegendEntry* auto_entry_tau_2 = auto_legend_tau -> AddEntry("auto_myGraph_tau_2","Prob < 0.75");
+	TLegendEntry* auto_entry_tau_3 = auto_legend_tau -> AddEntry("auto_myGraph_tau_3","Prob < 1");
+
+	auto_entry_tau_0 -> SetFillColor(kCyan);
+	auto_entry_tau_1 -> SetFillColor(kBlue);
+	auto_entry_tau_2 -> SetFillColor(kMagenta);
+	auto_entry_tau_3 -> SetFillColor(kRed);
+
+	auto_legend_tau -> Draw("same");
+
+	TCanvas* auto_myCanvas_vth = new TCanvas("auto_myCanvas_vth","auto_myCanvas_vth",0,0,700,500);
+	TGraphErrors * auto_myGraph_vth_0 = new TGraphErrors;
+	auto_myGraph_vth_0 -> Draw("A P");
+	TGraphErrors * auto_myGraph_vth_1 = new TGraphErrors;
+	auto_myGraph_vth_1 -> Draw("same P");
+	TGraphErrors * auto_myGraph_vth_2 = new TGraphErrors;
+	auto_myGraph_vth_2 -> Draw("same P");
+	TGraphErrors * auto_myGraph_vth_3 = new TGraphErrors;
+	auto_myGraph_vth_3 -> Draw("same P");
+
+	auto_myGraph_vth_0 -> SetMarkerStyle(kCircle);
+	auto_myGraph_vth_1 -> SetMarkerStyle(kCircle);
+	auto_myGraph_vth_2 -> SetMarkerStyle(kCircle);
+	auto_myGraph_vth_3 -> SetMarkerStyle(kCircle);
+
+	auto_myGraph_vth_0 -> SetLineColor(kCyan);
+	auto_myGraph_vth_1 -> SetLineColor(kBlue);
+	auto_myGraph_vth_2 -> SetLineColor(kMagenta);
+	auto_myGraph_vth_3 -> SetLineColor(kRed);
+
+	auto_myGraph_vth_0 -> SetMarkerColor(kCyan);
+	auto_myGraph_vth_1 -> SetMarkerColor(kBlue);
+	auto_myGraph_vth_2 -> SetMarkerColor(kMagenta);
+	auto_myGraph_vth_3 -> SetMarkerColor(kRed);
+
+	auto_myGraph_vth_0 -> SetFillColor(kCyan);
+	auto_myGraph_vth_1 -> SetFillColor(kBlue);
+	auto_myGraph_vth_2 -> SetFillColor(kMagenta);
+	auto_myGraph_vth_3 -> SetFillColor(kRed);
+
+	TLegend* auto_legend_vth = new TLegend(.1,.7,.3,.9);
+	TLegendEntry* auto_entry_vth_0 = auto_legend_vth -> AddEntry("auto_myGraph_vth_0","Prob < 0.05");
+	TLegendEntry* auto_entry_vth_1 = auto_legend_vth -> AddEntry("auto_myGraph_vth_1","Prob < 0.20");
+	TLegendEntry* auto_entry_vth_2 = auto_legend_vth -> AddEntry("auto_myGraph_vth_2","Prob < 0.75");
+	TLegendEntry* auto_entry_vth_3 = auto_legend_vth -> AddEntry("auto_myGraph_vth_3","Prob < 1");
+
+	auto_entry_vth_0 -> SetFillColor(kCyan);
+	auto_entry_vth_1 -> SetFillColor(kBlue);
+	auto_entry_vth_2 -> SetFillColor(kMagenta);
+	auto_entry_vth_3 -> SetFillColor(kRed);
+
+	auto_legend_vth -> Draw("same");
+
 	if (RAND == false){
 		for(tau = start_tau; tau < max_tau; tau = tau + step_tau){
 			for(vth = start_vth; vth < max_vth; vth = vth + step_vth){
@@ -566,7 +661,7 @@ int main(int argc, char *argv[]){
 					myFun_golf -> SetParameter(1, vth);
 					myFun_golf -> SetParameter(2, off);
 
-					TFitResultPtr fit_result = g_adc1 -> Fit("myFun_golf", "Q S");
+					TFitResultPtr fit_result = GADC -> Fit("myFun_golf", "Q S");
 
 					double result_tau = myFun_golf -> GetParameter(0);
 					double result_vth = myFun_golf -> GetParameter(1);
@@ -595,6 +690,12 @@ int main(int argc, char *argv[]){
 
 							N = myGraph_tau_0 -> GetN();
 							myGraph_tau_0 -> SetPoint(N,tau,result_off);
+
+							N = auto_myGraph_vth_0 -> GetN();
+							auto_myGraph_vth_0 -> SetPoint(N,vth,result_vth);
+
+							N = auto_myGraph_tau_0 -> GetN();
+							auto_myGraph_tau_0 -> SetPoint(N,tau,result_tau);
 						}
 						else if(prob < 0.20){
 							N = myGraph_off_liv1 -> GetN();
@@ -606,6 +707,11 @@ int main(int argc, char *argv[]){
 							N = myGraph_tau_1 -> GetN();
 							myGraph_tau_1 -> SetPoint(N,tau,result_off);
 
+							N = auto_myGraph_vth_1 -> GetN();
+							auto_myGraph_vth_1 -> SetPoint(N,vth,result_vth);
+
+							N = auto_myGraph_tau_1 -> GetN();
+							auto_myGraph_tau_1 -> SetPoint(N,tau,result_tau);
 						}
 						else if (prob < 0.75){
 							N = myGraph_off_liv2 -> GetN();
@@ -617,6 +723,11 @@ int main(int argc, char *argv[]){
 							N = myGraph_tau_2 -> GetN();
 							myGraph_tau_2 -> SetPoint(N,tau,result_off);
 
+							N = auto_myGraph_vth_2 -> GetN();
+							auto_myGraph_vth_2 -> SetPoint(N,vth,result_vth);
+
+							N = auto_myGraph_tau_2 -> GetN();
+							auto_myGraph_tau_2 -> SetPoint(N,tau,result_tau);
 						}
 						else{
 							N = myGraph_off_liv3 -> GetN();
@@ -628,6 +739,11 @@ int main(int argc, char *argv[]){
 							N = myGraph_tau_3 -> GetN();
 							myGraph_tau_3 -> SetPoint(N,tau,result_off);
 
+							N = auto_myGraph_vth_3 -> GetN();
+							auto_myGraph_vth_3 -> SetPoint(N,vth,result_vth);
+
+							N = auto_myGraph_tau_3 -> GetN();
+							auto_myGraph_tau_3 -> SetPoint(N,tau,result_tau);
 						}
 						
 					}
@@ -639,6 +755,11 @@ int main(int argc, char *argv[]){
 					myCanvas_vth -> Update();
 					myCanvas_tau -> Modified();
 					myCanvas_tau -> Update();
+
+					auto_myCanvas_vth -> Modified();
+					auto_myCanvas_vth -> Update();
+					auto_myCanvas_tau -> Modified();
+					auto_myCanvas_tau -> Update();
 				}
 			}
 		}
@@ -653,7 +774,7 @@ int main(int argc, char *argv[]){
 				myFun_golf -> SetParameter(0, tau);
 				myFun_golf -> SetParameter(1, vth);
 				myFun_golf -> SetParameter(2, off);
-				TFitResultPtr fit_result = g_adc1 -> Fit("myFun_golf", "Q S");
+				TFitResultPtr fit_result = GADC -> Fit("myFun_golf", "Q S"); 
 
 				double result_tau = myFun_golf -> GetParameter(0);
 				double result_vth = myFun_golf -> GetParameter(1);
@@ -669,7 +790,8 @@ int main(int argc, char *argv[]){
 						best_vth = vth;
 						best_off = off;
 
-						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
+						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << 
+						"\n\t -> off = " << result_off << " tau = " << result_tau << " vth = " << result_vth << endl;
 					}
 
 					int N;
@@ -682,6 +804,12 @@ int main(int argc, char *argv[]){
 
 						N = myGraph_tau_0 -> GetN();
 						myGraph_tau_0 -> SetPoint(N,tau,result_off);
+
+						N = auto_myGraph_vth_0 -> GetN();
+						auto_myGraph_vth_0 -> SetPoint(N,vth,result_vth);
+
+						N = auto_myGraph_tau_0 -> GetN();
+						auto_myGraph_tau_0 -> SetPoint(N,tau,result_tau);
 					}
 					else if(prob < 0.20){
 						N = myGraph_off_liv1 -> GetN();
@@ -693,6 +821,11 @@ int main(int argc, char *argv[]){
 						N = myGraph_tau_1 -> GetN();
 						myGraph_tau_1 -> SetPoint(N,tau,result_off);
 
+						N = auto_myGraph_vth_1 -> GetN();
+						auto_myGraph_vth_1 -> SetPoint(N,vth,result_vth);
+
+						N = auto_myGraph_tau_1 -> GetN();
+						auto_myGraph_tau_1 -> SetPoint(N,tau,result_tau);
 					}
 					else if (prob < 0.75){
 						N = myGraph_off_liv2 -> GetN();
@@ -704,6 +837,11 @@ int main(int argc, char *argv[]){
 						N = myGraph_tau_2 -> GetN();
 						myGraph_tau_2 -> SetPoint(N,tau,result_off);
 
+						N = auto_myGraph_vth_2 -> GetN();
+						auto_myGraph_vth_2 -> SetPoint(N,vth,result_vth);
+
+						N = auto_myGraph_tau_2 -> GetN();
+						auto_myGraph_tau_2 -> SetPoint(N,tau,result_tau);
 					}
 					else{
 						N = myGraph_off_liv3 -> GetN();
@@ -715,6 +853,11 @@ int main(int argc, char *argv[]){
 						N = myGraph_tau_3 -> GetN();
 						myGraph_tau_3 -> SetPoint(N,tau,result_off);
 
+						N = auto_myGraph_vth_3 -> GetN();
+						auto_myGraph_vth_3 -> SetPoint(N,vth,result_vth);
+
+						N = auto_myGraph_tau_3 -> GetN();
+						auto_myGraph_tau_3 -> SetPoint(N,tau,result_tau);
 					}
 						
 				}
@@ -726,6 +869,11 @@ int main(int argc, char *argv[]){
 				myCanvas_vth -> Update();
 				myCanvas_tau -> Modified();
 				myCanvas_tau -> Update();
+
+				auto_myCanvas_vth -> Modified();
+				auto_myCanvas_vth -> Update();
+				auto_myCanvas_tau -> Modified();
+				auto_myCanvas_tau -> Update();
 			}
 		}
 	}
