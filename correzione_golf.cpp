@@ -1,4 +1,4 @@
-//	
+//	c++ -o correzione_golf correzione_golf.cpp `root-config --cflags --glibs`
 // ./correzione_golf /mnt/c/Users/Rodolfo/Desktop/calibrazione/3/ 
 
 #include <iostream>
@@ -19,6 +19,8 @@
 #include "TFitResult.h"
 #include "TMatrixD.h"
 #include "TVirtualFitter.h"
+#include "TLegend.h"
+#include "TLegendEntry.h"
 
 using namespace std;
 
@@ -403,15 +405,21 @@ int main(int argc, char *argv[]){
 
 	double start_tau = -20;
 	double start_off = 10;
-	double start_vth = 8;
+	double start_vth = 10;
 
-	double step_tau = 5e3;
+	double step_tau = 1;
 	double step_off = 1;
-	double step_vth = 0.01;
+	double step_vth = 1;
 
-	double max_tau = 0;
+	double max_tau = 1;
 	double max_off = 400;
-	double max_vth = 20;
+	double max_vth = 30;
+
+	double best_tau;
+	double best_off;
+	double best_vth;
+
+	double best_prob = 0;
 
 	TF1 * myFun_golf = new TF1("myFun_golf",myFun, 0,300,3);
 	myFun_golf -> SetLineColor(kRed);
@@ -421,21 +429,139 @@ int main(int argc, char *argv[]){
 	myFun_golf -> SetParName(2, "Off0");
 
 	TCanvas* myCanvas_off = new TCanvas("myCanvas_off","myCanvas_off",0,0,700,500);
-	TGraphErrors * myGraph_off = new TGraphErrors;
-	myGraph_off -> Draw("A P");
+
+	TGraphErrors * myGraph_off_liv0 = new TGraphErrors;
+	myGraph_off_liv0 -> Draw("A P");
+	TGraphErrors * myGraph_off_liv1 = new TGraphErrors;
+	myGraph_off_liv1 -> Draw("same P");
+	TGraphErrors * myGraph_off_liv2 = new TGraphErrors;
+	myGraph_off_liv2 -> Draw("same P");
+	TGraphErrors * myGraph_off_liv3 = new TGraphErrors;
+	myGraph_off_liv3 -> Draw("same P");
+
+	myGraph_off_liv0 -> SetMarkerStyle(kCircle);
+	myGraph_off_liv1 -> SetMarkerStyle(kCircle);
+	myGraph_off_liv2 -> SetMarkerStyle(kCircle);
+	myGraph_off_liv3 -> SetMarkerStyle(kCircle);
+
+	myGraph_off_liv0 -> SetLineColor(kCyan);
+	myGraph_off_liv1 -> SetLineColor(kBlue);
+	myGraph_off_liv2 -> SetLineColor(kMagenta);
+	myGraph_off_liv3 -> SetLineColor(kRed);
+
+	myGraph_off_liv0 -> SetMarkerColor(kCyan);
+	myGraph_off_liv1 -> SetMarkerColor(kBlue);
+	myGraph_off_liv2 -> SetMarkerColor(kMagenta);
+	myGraph_off_liv3 -> SetMarkerColor(kRed);
+
+	myGraph_off_liv0 -> SetFillColor(kCyan);
+	myGraph_off_liv1 -> SetFillColor(kBlue);
+	myGraph_off_liv2 -> SetFillColor(kMagenta);
+	myGraph_off_liv3 -> SetFillColor(kRed);
+
+	TLegend* legend_off = new TLegend(.1,.7,.3,.9);
+	TLegendEntry* entry_off_0 = legend_off -> AddEntry("myGraph_off_liv0","Prob < 0.05");
+	TLegendEntry* entry_off_1 = legend_off -> AddEntry("myGraph_off_liv1","Prob < 0.20");
+	TLegendEntry* entry_off_2 = legend_off -> AddEntry("myGraph_off_liv2","Prob < 0.75");
+	TLegendEntry* entry_off_3 = legend_off -> AddEntry("myGraph_off_liv3","Prob < 1");
+
+	entry_off_0 -> SetFillColor(kCyan);
+	entry_off_1 -> SetFillColor(kBlue);
+	entry_off_2 -> SetFillColor(kMagenta);
+	entry_off_3 -> SetFillColor(kRed);
+
+	legend_off -> Draw("same");
+
 
 	TCanvas* myCanvas_vth = new TCanvas("myCanvas_vth","myCanvas_vth",0,0,700,500);
-	TGraphErrors * myGraph_vth = new TGraphErrors;
-	myGraph_vth -> Draw("A P");
+	TGraphErrors * myGraph_vth_0 = new TGraphErrors;
+	myGraph_vth_0 -> Draw("A P");
+	TGraphErrors * myGraph_vth_1 = new TGraphErrors;
+	myGraph_vth_1 -> Draw("same P");
+	TGraphErrors* myGraph_vth_2 = new TGraphErrors;
+	myGraph_vth_2 -> Draw("same P");
+	TGraphErrors * myGraph_vth_3 = new TGraphErrors;
+	myGraph_vth_3 -> Draw("same P");
+
+	myGraph_vth_0 -> SetMarkerStyle(kCircle);
+	myGraph_vth_1 -> SetMarkerStyle(kCircle);
+	myGraph_vth_2 -> SetMarkerStyle(kCircle);
+	myGraph_vth_3 -> SetMarkerStyle(kCircle);
+
+	myGraph_vth_0 -> SetLineColor(kCyan);
+	myGraph_vth_1 -> SetLineColor(kBlue);
+	myGraph_vth_2 -> SetLineColor(kMagenta);
+	myGraph_vth_3 -> SetLineColor(kRed);
+
+	myGraph_vth_0 -> SetMarkerColor(kCyan);
+	myGraph_vth_1 -> SetMarkerColor(kBlue);
+	myGraph_vth_2 -> SetMarkerColor(kMagenta);
+	myGraph_vth_3 -> SetMarkerColor(kRed);
+
+	myGraph_vth_0 -> SetFillColor(kCyan);
+	myGraph_vth_1 -> SetFillColor(kBlue);
+	myGraph_vth_2 -> SetFillColor(kMagenta);
+	myGraph_vth_3 -> SetFillColor(kRed);
+
+	TLegend* legend_vth = new TLegend(.1,.7,.3,.9);
+	TLegendEntry* entry_vth_0 = legend_vth -> AddEntry("myGraph_vth_0","Prob < 0.05");
+	TLegendEntry* entry_vth_1 = legend_vth -> AddEntry("myGraph_vth_1","Prob < 0.20");
+	TLegendEntry* entry_vth_2 = legend_vth -> AddEntry("myGraph_vth_2","Prob < 0.75");
+	TLegendEntry* entry_vth_3 = legend_vth -> AddEntry("myGraph_vth_3","Prob < 1");
+
+	entry_vth_0 -> SetFillColor(kCyan);
+	entry_vth_1 -> SetFillColor(kBlue);
+	entry_vth_2 -> SetFillColor(kMagenta);
+	entry_vth_3 -> SetFillColor(kRed);
+
+	legend_vth -> Draw("same");
 
 	TCanvas* myCanvas_tau = new TCanvas("myCanvas_tau","myCanvas_tau",0,0,700,500);
-	TGraphErrors * myGraph_tau = new TGraphErrors;
-	myGraph_tau -> Draw("A P");
+	TGraphErrors * myGraph_tau_0 = new TGraphErrors;
+	myGraph_tau_0 -> Draw("A P");
+	TGraphErrors * myGraph_tau_1 = new TGraphErrors;
+	myGraph_tau_1 -> Draw("same P");
+	TGraphErrors * myGraph_tau_2 = new TGraphErrors;
+	myGraph_tau_2 -> Draw("same P");
+	TGraphErrors * myGraph_tau_3 = new TGraphErrors;
+	myGraph_tau_3 -> Draw("same P");
+
+	myGraph_tau_0 -> SetMarkerStyle(kCircle);
+	myGraph_tau_1 -> SetMarkerStyle(kCircle);
+	myGraph_tau_2 -> SetMarkerStyle(kCircle);
+	myGraph_tau_3 -> SetMarkerStyle(kCircle);
+
+	myGraph_tau_0 -> SetLineColor(kCyan);
+	myGraph_tau_1 -> SetLineColor(kBlue);
+	myGraph_tau_2 -> SetLineColor(kMagenta);
+	myGraph_tau_3 -> SetLineColor(kRed);
+
+	myGraph_tau_0 -> SetMarkerColor(kCyan);
+	myGraph_tau_1 -> SetMarkerColor(kBlue);
+	myGraph_tau_2 -> SetMarkerColor(kMagenta);
+	myGraph_tau_3 -> SetMarkerColor(kRed);
+
+	myGraph_tau_0 -> SetFillColor(kCyan);
+	myGraph_tau_1 -> SetFillColor(kBlue);
+	myGraph_tau_2 -> SetFillColor(kMagenta);
+	myGraph_tau_3 -> SetFillColor(kRed);
+
+	TLegend* legend_tau = new TLegend(.1,.7,.3,.9);
+	TLegendEntry* entry_tau_0 = legend_tau -> AddEntry("myGraph_tau_0","Prob < 0.05");
+	TLegendEntry* entry_tau_1 = legend_tau -> AddEntry("myGraph_tau_1","Prob < 0.20");
+	TLegendEntry* entry_tau_2 = legend_tau -> AddEntry("myGraph_tau_2","Prob < 0.75");
+	TLegendEntry* entry_tau_3 = legend_tau -> AddEntry("myGraph_tau_3","Prob < 1");
+
+	entry_tau_0 -> SetFillColor(kCyan);
+	entry_tau_1 -> SetFillColor(kBlue);
+	entry_tau_2 -> SetFillColor(kMagenta);
+	entry_tau_3 -> SetFillColor(kRed);
+
+	legend_tau -> Draw("same");
 
 	for(tau = start_tau; tau < max_tau; tau = tau + step_tau){
 		for(vth = start_vth; vth < max_vth; vth = vth + step_vth){
 			for(off = start_off; off < max_off; off = off + step_off){
-				//cout << "tau = " << tau << " vth = " << vth << " off = " << off << " ";
 
 				myFun_golf -> SetParameter(0, tau);
 				myFun_golf -> SetParameter(1, vth);
@@ -448,19 +574,65 @@ int main(int argc, char *argv[]){
 				double result_off = myFun_golf -> GetParameter(2);
 
 				int res = fit_result -> CovMatrixStatus();
-				//cout << res << endl;
 				if (res != 0 && res != 2 && result_off > 0){
-			//		cout << "ok" << endl;
-					int N = myGraph_off -> GetN();
-					myGraph_off -> SetPoint(N,off,result_off);
+					double prob = fit_result -> Prob();
 
-					N = myGraph_vth -> GetN();
-					myGraph_vth -> SetPoint(N,vth,result_off);
+					if (prob > best_prob){
+						best_prob = prob;
+						best_tau = tau;
+						best_vth = vth;
+						best_off = off;
 
-					N = myGraph_tau -> GetN();
-					myGraph_tau -> SetPoint(N,tau,result_off);
+						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << endl;
+					}
+
+					int N;
+					if (prob < 0.05){
+						N = myGraph_off_liv0 -> GetN();
+						myGraph_off_liv0 -> SetPoint(N,off,result_off);
+
+						N = myGraph_vth_0 -> GetN();
+						myGraph_vth_0 -> SetPoint(N,vth,result_off);
+
+						N = myGraph_tau_0 -> GetN();
+						myGraph_tau_0 -> SetPoint(N,tau,result_off);
+					}
+					else if(prob < 0.20){
+						N = myGraph_off_liv1 -> GetN();
+						myGraph_off_liv1 -> SetPoint(N,off,result_off);
+
+						N = myGraph_vth_1 -> GetN();
+						myGraph_vth_1 -> SetPoint(N,vth,result_off);
+
+						N = myGraph_tau_1 -> GetN();
+						myGraph_tau_1 -> SetPoint(N,tau,result_off);
+
+					}
+					else if (prob < 0.75){
+						N = myGraph_off_liv2 -> GetN();
+						myGraph_off_liv2 -> SetPoint(N,off,result_off);
+
+						N = myGraph_vth_2 -> GetN();
+						myGraph_vth_2 -> SetPoint(N,vth,result_off);
+
+						N = myGraph_tau_2 -> GetN();
+						myGraph_tau_2 -> SetPoint(N,tau,result_off);
+
+					}
+					else{
+						N = myGraph_off_liv3 -> GetN();
+						myGraph_off_liv3 -> SetPoint(N,off,result_off);
+
+						N = myGraph_vth_3 -> GetN();
+						myGraph_vth_3 -> SetPoint(N,vth,result_off);
+
+						N = myGraph_tau_3 -> GetN();
+						myGraph_tau_3 -> SetPoint(N,tau,result_off);
+
+					}
+					
 				}
-			//	else cout << "no" << endl;
+			
 
 				myCanvas_off -> Modified();
 				myCanvas_off -> Update();
