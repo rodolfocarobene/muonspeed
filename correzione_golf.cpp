@@ -401,13 +401,13 @@ int main(int argc, char *argv[]){
 	double vth;
 	double off;		
 
-	double start_tau = -4e4;
+	double start_tau = -20;
 	double start_off = 10;
-	double start_vth = 0.008;
+	double start_vth = 8;
 
 	double step_tau = 5e3;
 	double step_off = 1;
-	double step_vth = 0.0001;
+	double step_vth = 0.01;
 
 	double max_tau = 0;
 	double max_off = 400;
