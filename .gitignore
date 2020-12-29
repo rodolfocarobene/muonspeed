@@ -22,6 +22,10 @@ old/tot2
 old/strtk.hpp
 old/unite
 
+#immagini
+
+immagini/
+
 #ignora i txt, in quanto file di dati
 
 *.TXT

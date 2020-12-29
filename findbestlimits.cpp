@@ -394,7 +394,7 @@ int main(int argc, char *argv[]){
 
 	legend_fit -> Draw("same");
 
-	while(true == true){
+	for(int times = 0; times < 5000; times++){
 		if(GADC == g_adc0){
 			adc_min = rand_adc(mins1_graph,maxs1_graph);																	//funzione da scrivere
 			adc_max = rand_adc(mins1_graph,maxs1_graph);
@@ -414,6 +414,31 @@ int main(int argc, char *argv[]){
 			else adc_max = adc_max + 3;
 		}
 
+		if (GADC == g_adc0){
+			int count = 0;
+			for(int i = 0; i < ampiezzas1.size(); i++){
+				if(ampiezzas1[i] > adc_min && ampiezzas1[i] < adc_max) count++;
+
+				if(count == 3) i = ampiezzas1.size();
+			}
+			if(count < 3){
+				adc_min = 50;
+				adc_max = 100;
+			}
+		}
+		else if(GADC == g_adc1){
+			int count = 0;
+			for(int i = 0; i < ampiezzas2.size(); i++){
+				if(ampiezzas2[i] > adc_min && ampiezzas2[i] < adc_max) count++;
+
+				if(count == 3) i = ampiezzas2.size();
+			}
+			if(count < 3){
+				adc_min = 50;
+				adc_max = 100;
+			}
+		}
+
 		cout << "Tentativo: \t MIN = " << adc_min << " MAX = " << adc_max << endl;
 		myFun_golf -> SetParameter(0, tau);
 		myFun_golf -> SetParameter(1, vth);
@@ -422,7 +447,6 @@ int main(int argc, char *argv[]){
 		TFitResultPtr fit_result = GADC -> Fit("myFun_golf", "Q S R","", adc_min, adc_max); 
 
 		int res = fit_result -> CovMatrixStatus();
-		cout << res << endl;
 		if (res != 0 && res != 2){
 			double prob = fit_result -> Prob();
 			if (prob > best_prob){
@@ -451,12 +475,15 @@ int main(int argc, char *argv[]){
 				N = myGraph_fit_liv3 -> GetN();
 				myGraph_fit_liv3 -> SetPoint(N,adc_min,adc_max);
 			}
+			myCanvas_fit -> Modified();
+			myCanvas_fit -> Update();
 						
 		}
-		myCanvas_fit -> Modified();
-		myCanvas_fit -> Update();
 		
 	}
+
+	cout << "\n\n" << endl;
+	cout << "Best: " << best_adc_min << "  " << best_adc_max << endl;
 	
 
 	myApp.Run();
