@@ -118,7 +118,7 @@ int main(int argc, char *argv[]){
 		double y = traccia0[i];
 		int N = g_1 -> GetN();			
 		g_1 -> SetPoint(N,x,y);
-		g_1 -> SetPointError(N,x/100,y/100);
+		g_1 -> SetPointError(N,0,0);
 		x = x + STEP;
 	}
 	g_1 -> Draw();

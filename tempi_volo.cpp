@@ -24,7 +24,7 @@ using namespace std;
 
 #define DEBUG false
 
-#define AUTOLIMIT true
+#define AUTOLIMIT false
 
 #define ADC0_FILE "datiADC0.txt"
 #define ADC1_FILE "datiADC1.txt"
@@ -76,6 +76,7 @@ class evento{
 			return adc1;
 		}
 		
+		/*
 				//std correzione
 		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
 			return tdc + tau0 * log(adc0/(adc0 - vth0)) - tau1 * log(adc1/(adc1 - vth1));
@@ -86,7 +87,7 @@ class evento{
 		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
 			return tdc - tau1 * log(adc1/(adc1 - vth1));
 		}
-		
+		*/
 		/*
 				//correzione nuova log(log)
 		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
@@ -100,7 +101,7 @@ class evento{
 		}
 
 		*/
-		/*
+		
 				//correzione nuova sigmoid
 		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
 			return tdc + tau0 * log(vth0/(adc0-vth0))  - 4/tau0 - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
@@ -111,8 +112,8 @@ class evento{
 		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
 			return tdc - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
 		}
-
-		*/
+		
+		
 	
 		double Get_tdc_off(double off0, double off1){
 			return - tdc + off0 + off1;
@@ -144,7 +145,7 @@ bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
 	cout << "Numero dati: " << ampiezzas1.size() << endl;
 	return true;
 }
-
+/*
 		//	funzione standard
 double myFun(double *x, double *par){		
 	double A = par[0];		//tau
@@ -153,6 +154,7 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return A*log(D/(D-B))+C;
 }
+*/
 
 /*
 		//	funzione nuova loglog
@@ -164,7 +166,6 @@ double myFun(double *x, double *par){
 	return C-A*log(log(D/B));
 }
 */
-/*
 		// funzione sigmoide
 double myFun(double *x, double *par){		
 	double A = par[0];		//tau
@@ -173,33 +174,44 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return C+A*log(B/(D-B));
 }
-*/
-/*
+
+
 
 	//setlimits 
 bool fun1 = true;
 void setlimits(TH1D * myhisto, double * min, double * max){	
+	double maxcount = 0;
+	int maxcountbin = 0;
+	for(int i = 0; i < 900; i++){
+		int count = myhisto -> GetBinContent(i);
+		if (count > maxcount){ 
+			maxcountbin = i;
+			maxcount = count;
+		}
+	}
+
 	TF1 * g = new TF1("g","landau",85,95);	
 	if(fun1 == true){
 		g -> SetParameter (1,17);
 	}
 	else g -> SetParameter (1,50);
 	myhisto -> Fit(g, "M Q");
+	g -> SetParLimits(1,maxcountbin-2, maxcountbin+2);
 	double mean = g -> GetParameter (1);
 	double sigma = g -> GetParameter (2);
 	if(fun1 == true){
-		*min = mean - 1 * sigma;
-		*max = mean + 3 * sigma;
+		*min = mean - 2 * sigma;
+		*max = mean + 2 * sigma;
 		fun1 = false;
 	}
 	else{
-		*min = mean - 1.5 * sigma;
+		*min = mean - 2 * sigma;
 		*max = mean + 2 * sigma;
 	}
 	cout << "media: " << mean << "  sigma: " << sigma << endl;
 	return;
 }
-*/
+/*
 	//setlimits con FWHM
 void setlimits(TH1D * myhisto, double * min, double * max){
 	double maxcount = 0;
@@ -240,7 +252,7 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	cout << "\nmaxcount: " << maxcount << endl;
 	cout << "bin: " << minbin << " - " << maxcountbin << " - " << maxbin << endl;
 }
-
+*/
 
 void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
@@ -250,8 +262,12 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		double dev = 0;
 		for(int j = 0; j < v_eventi.size(); j++){
 			double adc0 = v_eventi[j] -> Get_adc0();
+			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
+
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i){
+			if(adc0 == i && limits){
 				count++;
 				sumt = sumt + tdc;
 			}
@@ -259,16 +275,19 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		sumt = sumt / count;
 		for(int j = 0; j < v_eventi.size(); j++){
 			double adc0 = v_eventi[j] -> Get_adc0();
+			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i){
+			if(adc0 == i && limits){
 				dev = dev + pow(tdc-sumt,2)/(count -1);
 			}
 		}
 		dev = sqrt(dev) / sqrt(count);
 		if(count == 1) dev = E_TDC;
 		int N = g_adc0 -> GetN();
-		if(count != 0) g_adc0 -> SetPoint(N,i,sumt);
-		if(count != 0) g_adc0 -> SetPointError(N,E_ADC,dev);
+		if(count ) g_adc0 -> SetPoint(N,i,sumt);
+		if(count ) g_adc0 -> SetPointError(N,E_ADC,dev);
 	}
 
 	for(int i = mins2_graph; i <= maxs2_graph; i++){
@@ -277,18 +296,24 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		int count = 0;
 		double dev = 0;
 		for(int j = 0; j < v_eventi.size(); j++){
+			double adc0 = v_eventi[j] -> Get_adc0();
 			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i){
+			if(adc1 == i && limits){
 				count++;
 				sumt = sumt + tdc;
 			}
 		}
 		sumt = sumt / count;
 		for(int j = 0; j < v_eventi.size(); j++){
+			double adc0 = v_eventi[j] -> Get_adc0();
 			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i){
+			if(adc1 == i && limits){
 				dev = dev + pow(tdc-sumt,2)/(count -1);
 			}
 		}
@@ -467,7 +492,7 @@ int main(int argc, char *argv[]){
 	fun_adc1 -> SetParName(1, "Vth1");
 	fun_adc1 -> SetParName(2, "Off1");
 
-
+/*
 	fun_adc0 -> SetParameter(0, -4e4);
 	fun_adc0 -> SetParameter(1, 1e-2);
 	fun_adc0 -> SetParameter(2, 280);
@@ -476,17 +501,17 @@ int main(int argc, char *argv[]){
 	fun_adc1 -> SetParameter(1, 1e-2);
 	fun_adc1 -> SetParameter(2, 280);
 
-
-	/*
-			//sigmoide
-	fun_adc0 -> SetParameter(0, -14.49);
-	fun_adc0 -> SetParameter(1, 0.00037);
-	fun_adc0 -> SetParameter(2, 93);
-
-	fun_adc1 -> SetParameter(0, -15);
-	fun_adc1 -> SetParameter(1, 0.001);
-	fun_adc1 -> SetParameter(2, 90);
 */
+	
+			//sigmoide
+	fun_adc0 -> SetParameter(0, -14.8);
+	fun_adc0 -> SetParameter(1, 20.2);
+	fun_adc0 -> SetParameter(2, 255);
+
+	fun_adc1 -> SetParameter(0, -14.8);
+	fun_adc1 -> SetParameter(1, 20.2);
+	fun_adc1 -> SetParameter(2, 255);
+
 
 /*			loglog
 	fun_adc0 -> SetParameter(0, -400);

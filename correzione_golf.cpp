@@ -35,9 +35,9 @@ using namespace std;
 #define DEBUG false
 
 #define AUTOLIMIT true
-#define RAND true
+#define RAND false
 
-#define GADC g_adc0   
+#define GADC g_adc1
 
 #define ADC0_FILE "datiADC0.txt"
 #define ADC1_FILE "datiADC1.txt"
@@ -411,15 +411,15 @@ int main(int argc, char *argv[]){
 	double off;		
 	double start_tau = -16;
 	double start_off = 10;
-	double start_vth = 0.0001;
+	double start_vth = 8;
 
-	double step_tau = 1;
+	double step_tau = 2;
 	double step_off = 1;
-	double step_vth = 0.001;
+	double step_vth = 2;
 
-	double max_tau = 0;
+	double max_tau = -9;
 	double max_off = 400;
-	double max_vth = 0.01;
+	double max_vth = 12;
 
 	double best_tau;
 	double best_off;
@@ -668,16 +668,17 @@ int main(int argc, char *argv[]){
 					double result_off = myFun_golf -> GetParameter(2);
 
 					int res = fit_result -> CovMatrixStatus();
+
 					if (res != 0 && res != 2 && result_off > 0){
 						double prob = fit_result -> Prob();
-
+						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
 						if (prob > best_prob){
 							best_prob = prob;
 							best_tau = tau;
 							best_vth = vth;
 							best_off = off;
 
-							cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
+							cout << "BEST -- Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << " -> " << result_off << endl;
 						}
 
 						int N;
@@ -765,7 +766,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 	else{
-		while(true == true){
+		for(int times = 0; times < 1000; times++){
 			tau = rand_tau();
 			vth = rand_vth();
 
@@ -783,14 +784,14 @@ int main(int argc, char *argv[]){
 				int res = fit_result -> CovMatrixStatus();
 				if (res != 0 && res != 2 && result_off > 0){
 					double prob = fit_result -> Prob();
-
+					cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << endl;
 					if (prob > best_prob){
 						best_prob = prob;
 						best_tau = tau;
 						best_vth = vth;
 						best_off = off;
 
-						cout << "Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << 
+						cout << "Best Prob = " << prob << "\t Tau = " << tau << " Vth = " << vth << " Off = " << off << 
 						"\n\t -> off = " << result_off << " tau = " << result_tau << " vth = " << result_vth << endl;
 					}
 

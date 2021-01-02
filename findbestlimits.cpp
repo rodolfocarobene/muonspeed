@@ -149,8 +149,12 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		double dev = 0;
 		for(int j = 0; j < v_eventi.size(); j++){
 			double adc0 = v_eventi[j] -> Get_adc0();
+			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
+
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i){
+			if(adc0 == i && limits){
 				count++;
 				sumt = sumt + tdc;
 			}
@@ -158,16 +162,19 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		sumt = sumt / count;
 		for(int j = 0; j < v_eventi.size(); j++){
 			double adc0 = v_eventi[j] -> Get_adc0();
+			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i){
+			if(adc0 == i && limits){
 				dev = dev + pow(tdc-sumt,2)/(count -1);
 			}
 		}
 		dev = sqrt(dev) / sqrt(count);
 		if(count == 1) dev = E_TDC;
 		int N = g_adc0 -> GetN();
-		if(count != 0) g_adc0 -> SetPoint(N,i,sumt);
-		if(count != 0) g_adc0 -> SetPointError(N,E_ADC,dev);
+		if(count ) g_adc0 -> SetPoint(N,i,sumt);
+		if(count ) g_adc0 -> SetPointError(N,E_ADC,dev);
 	}
 
 	for(int i = mins2_graph; i <= maxs2_graph; i++){
@@ -176,18 +183,24 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		int count = 0;
 		double dev = 0;
 		for(int j = 0; j < v_eventi.size(); j++){
+			double adc0 = v_eventi[j] -> Get_adc0();
 			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i){
+			if(adc1 == i && limits){
 				count++;
 				sumt = sumt + tdc;
 			}
 		}
 		sumt = sumt / count;
 		for(int j = 0; j < v_eventi.size(); j++){
+			double adc0 = v_eventi[j] -> Get_adc0();
 			double adc1 = v_eventi[j] -> Get_adc1();
+
+			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
 			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i){
+			if(adc1 == i && limits){
 				dev = dev + pow(tdc-sumt,2)/(count -1);
 			}
 		}
