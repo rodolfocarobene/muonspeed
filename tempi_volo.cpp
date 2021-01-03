@@ -24,7 +24,7 @@ using namespace std;
 
 #define DEBUG false
 
-#define AUTOLIMIT false
+#define AUTOLIMIT true
 
 #define ADC0_FILE "datiADC0.txt"
 #define ADC1_FILE "datiADC1.txt"
@@ -76,7 +76,7 @@ class evento{
 			return adc1;
 		}
 		
-		/*
+		
 				//std correzione
 		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
 			return tdc + tau0 * log(adc0/(adc0 - vth0)) - tau1 * log(adc1/(adc1 - vth1));
@@ -87,21 +87,8 @@ class evento{
 		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
 			return tdc - tau1 * log(adc1/(adc1 - vth1));
 		}
-		*/
-		/*
-				//correzione nuova log(log)
-		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
-			return tdc - tau0 * log(log(adc0/vth0)) + tau1 * log(log(adc1/vth1));
-		}
-		double Get_tdc_adc0(double tau0, double vth0, double tau1, double vth1){
-			return tdc + tau0 * log(log(adc0/vth0));
-		}
-		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
-			return tdc + tau1 * log(log(adc1/vth1));
-		}
-
-		*/
 		
+		/*
 				//correzione nuova sigmoid
 		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
 			return tdc + tau0 * log(vth0/(adc0-vth0))  - 4/tau0 - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
@@ -112,7 +99,7 @@ class evento{
 		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
 			return tdc - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
 		}
-		
+		*/
 		
 	
 		double Get_tdc_off(double off0, double off1){
@@ -145,7 +132,7 @@ bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
 	cout << "Numero dati: " << ampiezzas1.size() << endl;
 	return true;
 }
-/*
+
 		//	funzione standard
 double myFun(double *x, double *par){		
 	double A = par[0];		//tau
@@ -154,18 +141,9 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return A*log(D/(D-B))+C;
 }
-*/
+
 
 /*
-		//	funzione nuova loglog
-double myFun(double *x, double *par){		
-	double A = par[0];		//tau
-	double B = par[1];		//Vth
-	double C = par[2];		//offset
-	double D = x[0];
-	return C-A*log(log(D/B));
-}
-*/
 		// funzione sigmoide
 double myFun(double *x, double *par){		
 	double A = par[0];		//tau
@@ -174,7 +152,7 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return C+A*log(B/(D-B));
 }
-
+*/
 
 
 	//setlimits 
@@ -492,7 +470,7 @@ int main(int argc, char *argv[]){
 	fun_adc1 -> SetParName(1, "Vth1");
 	fun_adc1 -> SetParName(2, "Off1");
 
-/*
+
 	fun_adc0 -> SetParameter(0, -4e4);
 	fun_adc0 -> SetParameter(1, 1e-2);
 	fun_adc0 -> SetParameter(2, 280);
@@ -501,8 +479,8 @@ int main(int argc, char *argv[]){
 	fun_adc1 -> SetParameter(1, 1e-2);
 	fun_adc1 -> SetParameter(2, 280);
 
-*/
-	
+
+	/*
 			//sigmoide
 	fun_adc0 -> SetParameter(0, -14.8);
 	fun_adc0 -> SetParameter(1, 20.2);
@@ -511,16 +489,6 @@ int main(int argc, char *argv[]){
 	fun_adc1 -> SetParameter(0, -14.8);
 	fun_adc1 -> SetParameter(1, 20.2);
 	fun_adc1 -> SetParameter(2, 255);
-
-
-/*			loglog
-	fun_adc0 -> SetParameter(0, -400);
-	fun_adc0 -> SetParameter(1, 1e-24);
-	fun_adc0 -> SetParameter(2, -1000);
-
-	fun_adc1 -> SetParameter(0, -400);
-	fun_adc1 -> SetParameter(1, 1e-24);
-	fun_adc1 -> SetParameter(2, -1000);
 */
 
 	TVirtualFitter::SetMaxIterations(20000);
