@@ -4,9 +4,13 @@ https://api.weather.com/v1/location/LIML:9:IT/observations/historical.json?apiKe
 curl "https://api.weather.com/v1/location/LIML:9:IT/observations/historical.json?apiKey=6532d6454b8aa370768e63d6ba5a832e&units=m&language=it-IT&startDate=20201110&endDate=20201117" > meteo.txt
 
 
+possibili miglioramenti: invece di creare ogni volta 6 grafici potrei scrivere una classe che contiene di per sè tutto... 
+renderebbe molto più breve e leggibile il codice
+
 */
 
-// c++ -o new_meteo new_meteo.cpp `root-config --cflags --glibs`
+// c++ -o new_meteo new_meteo.cpp `root-config --cflags --glibs` -lcurl
+// ./new_meteo /mnt/c/.../dati.txt
 
 #define strtk_no_tr1_or_boost 1
 
@@ -17,6 +21,7 @@ curl "https://api.weather.com/v1/location/LIML:9:IT/observations/historical.json
 #include <deque>
 #include <chrono>
 #include <ctime>
+#include <curl/curl.h>
 
 #include "strtk.hpp"
 
@@ -29,9 +34,13 @@ curl "https://api.weather.com/v1/location/LIML:9:IT/observations/historical.json
 #include "TVectorD.h"
 #include "TH1D.h"
 #include "THistPainter.h"
+	
+#define DOWNLOAD false	
+#define START_DATE "20201110"				//per curl
+#define END_DATE "20201119"			
 
-#define GIORNO_START 12			//11
-#define ORA_START 19				//13
+#define GIORNO_START 12			
+#define ORA_START 19				
 
 #define ALFA -0.15
 #define BETA 0.025
@@ -311,7 +320,48 @@ bool read_meteo_data(){
 	return true;
 }
 
+static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
+	size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
+  	return written;
+}
+
 int main(int argc, char *argv[]){
+
+	if(DOWNLOAD == true){
+		CURL *curl_handle;
+	  	static const char *pagefilename = "meteo.txt";
+	  	FILE *pagefile;
+
+	  	curl_global_init(CURL_GLOBAL_ALL);
+	 
+	  	curl_handle = curl_easy_init();
+	 
+
+	  	string request = "https://api.weather.com/v1/location/LIML:9:IT/observations/historical.json?apiKey=6532d6454b8aa370768e63d6ba5a832e&units=m&language=it-IT&startDate=";
+	  	request.append(START_DATE);
+	  	request.append("&endDate=");
+	  	request.append(END_DATE);
+
+	  	curl_easy_setopt(curl_handle, CURLOPT_URL, &request[0]);
+	  	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+	  	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+	  	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+	 
+	  	pagefile = fopen(pagefilename, "wb");
+	  	if(pagefile) {
+	 
+	    	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
+	 
+	    	curl_easy_perform(curl_handle);
+	 
+	    	fclose(pagefile);
+	  	}
+	 	
+	  	curl_easy_cleanup(curl_handle);
+	 
+	  	curl_global_cleanup();	
+	}
+	
 	if(read_meteo_data() == false){
 		cout << "Lettura fallita" << endl;
 		return 1;
@@ -347,14 +397,9 @@ int main(int argc, char *argv[]){
 	if( !(leggi_dati(conteggiS1, conteggiS2, doppie, argc, argv)) ) return 1;
 	cout << "Lettura completata con successo\n" << endl;
 
-	ore.push_back(0);
-	for(int i = 0; i < conteggiS1.size() ; i++) ore.push_back(i + ORA_START);
-	
+//andamento meteo per S1
 
-
-	//andamento meteo per S1
-
-	TGraph* gr_std1= new TGraph;                   //           <-------------------
+	TGraph* gr_std1= new TGraph;                   
 	gr_std1 -> SetMarkerColor(kBlack);
 	gr_std1 -> SetMarkerSize(1);
 	gr_std1 -> SetMarkerStyle(8);
@@ -389,7 +434,7 @@ int main(int argc, char *argv[]){
 	gr_5 -> SetMarkerSize(1);
 	gr_5 -> SetMarkerStyle(8);
 	
-//---------------------------------------------
+	//---------------------------------------------
 
 	TGraph* gr_pressione = new TGraph;
 	gr_pressione -> SetMarkerColor(kBlack);
@@ -401,7 +446,7 @@ int main(int argc, char *argv[]){
 	gr_temperatura -> SetMarkerSize(1);
 	gr_temperatura -> SetMarkerStyle(8);
 
-//---------------------------------------------
+	//---------------------------------------------
 
 	for(int i = 0; i < conteggiS1.size(); i++){
 		int j = find_nearest(i + ORA_START); //trova l'indice che corrisponde all'ora più vicina
@@ -524,7 +569,7 @@ int main(int argc, char *argv[]){
 	cout << "pressione media: " << mean_press << endl;
 	cout << "rate medio (s1): " << mean_rate_s1 << endl;
 
-//attesa : I = (I0+ALFA(P-P0) + BETA (T-T0) )*I0
+	//attesa : I = (I0+ALFA(P-P0) + BETA (T-T0) )*I0
 	TCanvas* rate_reale_vs_atteso_s1 = new TCanvas("rate_reale_vs_atteso_s1","rate_reale_vs_atteso_s1",0,0,700,500);
 	rate_reale_vs_atteso_s1 -> Divide(1,2);
 
@@ -555,69 +600,83 @@ int main(int argc, char *argv[]){
 	rate_reale_vs_atteso_s1 -> cd(2);
 	gr_atteso_s1 -> Draw("AP");
 
-	//andamento meteo per S2
+//andamento meteo per S2
 
-	/*
+	TGraph* gr_std2= new TGraph;                   
+	gr_std2 -> SetMarkerColor(kBlack);
+	gr_std2 -> SetMarkerSize(1);
+	gr_std2 -> SetMarkerStyle(8);
 
-	TGraph* gr_std2= new TGraph;
-	gr_std2->SetMarkerColor(kWhite);
-	gr_std2->SetMarkerSize(0.1);
-	gr_std2->SetMarkerStyle(8);
-	TGraph* gr_02= new TGraph;		//sole
-	gr_02->SetMarkerColor(kYellow);
-	gr_02->SetMarkerSize(1);
-	gr_02->SetMarkerStyle(8);
-	TGraph* gr_12= new TGraph;		//sereno(notte)
-	gr_12->SetMarkerColor(kBlue + 4);
-	gr_12->SetMarkerSize(1);
-	gr_12->SetMarkerStyle(8);
-	TGraph* gr_22= new TGraph;		//nebbia
-	gr_22->SetMarkerColor(kGray + 1);
-	gr_22->SetMarkerSize(1);
-	gr_22->SetMarkerStyle(8);
-	TGraph* gr_32= new TGraph;		//nuvoloso
-	gr_32->SetMarkerColor(kGray + 2);
-	gr_32->SetMarkerSize(1);
-	gr_32->SetMarkerStyle(8);
-	TGraph* gr_42= new TGraph;		//pioggia
-	gr_42->SetMarkerColor(kCyan - 3);
-	gr_42->SetMarkerSize(1);
-	gr_42->SetMarkerStyle(8);
-	TGraph* gr_52= new TGraph;		//poca nebbia
-	gr_52->SetMarkerColor(kGray);
-	gr_52->SetMarkerSize(1);
-	gr_52->SetMarkerStyle(8);
+	TGraph* gr_0_2 = new TGraph;		//sole
+	gr_0_2 -> SetMarkerColor(kYellow);
+	gr_0_2 -> SetMarkerSize(1);
+	gr_0_2 -> SetMarkerStyle(8);
+
+	TGraph* gr_1_2 = new TGraph;		//sereno(notte)             <-------------
+	gr_1_2 -> SetMarkerColor(kBlue + 4);
+	gr_1_2 -> SetMarkerSize(1);
+	gr_1_2 -> SetMarkerStyle(8);
+
+	TGraph* gr_2_2 = new TGraph;		//nebbia
+	gr_2_2 -> SetMarkerColor(kGray + 1);
+	gr_2_2 -> SetMarkerSize(1);
+	gr_2_2 -> SetMarkerStyle(8);
+
+	TGraph* gr_3_2 = new TGraph;		//nuvoloso
+	gr_3_2 -> SetMarkerColor(kGray + 2);
+	gr_3_2 -> SetMarkerSize(1);
+	gr_3_2 -> SetMarkerStyle(8);
+
+	TGraph* gr_4_2 = new TGraph;		//pioggia
+	gr_4_2 -> SetMarkerColor(kCyan - 3);
+	gr_4_2 -> SetMarkerSize(1);
+	gr_4_2 -> SetMarkerStyle(8);
+
+	TGraph* gr_5_2 = new TGraph;		//poca nebbia
+	gr_5_2 -> SetMarkerColor(kGray);
+	gr_5_2 -> SetMarkerSize(1);
+	gr_5_2 -> SetMarkerStyle(8);
 	
-	for(int i = 1; i < conteggiS2.size(); i++){
-		int j = find_nearest(ore[i]); //trova l'indice che corrisponde all'ora più vicina
-		string meteo = tipo_meteo[j];
+
+	for(int i = 0; i < conteggiS2.size(); i++){
+		int j = find_nearest(i + ORA_START); //trova l'indice che corrisponde all'ora più vicina
+
+		string meteo = v_date[j] -> Get_type();
+
 		int caso = tipe_to_val(meteo); //cerca nel dizionario a quale valore corrisponde
-		double y = (conteggiS2[i] - conteggiS2[i-1])/60;
+
+		double y;
+		if(i > 0) y = (conteggiS2[i] - conteggiS2[i-1]) / 60;
+		else y = conteggiS2[i] / 60;
 		int N;
+
+		N = gr_std2 -> GetN();
+		gr_std2 -> SetPoint(N,i,y);
+
 		switch(caso){
 			case 0: 
-				N = gr_02 -> GetN();
-				gr_02 -> SetPoint(N,i,y);
+				N = gr_0_2 -> GetN();
+				gr_0_2 -> SetPoint(N,i,y);
 				break;
 			case 1: 
-				N = gr_12 -> GetN();
-				gr_12 -> SetPoint(N,i,y);
+				N = gr_1_2 -> GetN();
+				gr_1_2 -> SetPoint(N,i,y);
 				break;
 			case 2: 
-				N = gr_22 -> GetN();
-				gr_22 -> SetPoint(N,i,y);
+				N = gr_2_2 -> GetN();
+				gr_2_2 -> SetPoint(N,i,y);
 				break;
 			case 3: 
-				N = gr_32 -> GetN();
-				gr_32 -> SetPoint(N,i,y);
+				N = gr_3_2 -> GetN();
+				gr_3_2 -> SetPoint(N,i,y);
 				break;
 			case 4: 
-				N = gr_42 -> GetN();
-				gr_42 -> SetPoint(N,i,y);
+				N = gr_4_2 -> GetN();
+				gr_4_2 -> SetPoint(N,i,y);
 				break;
 			case 5: 
-				N = gr_52 -> GetN();
-				gr_52 -> SetPoint(N,i,y);
+				N = gr_5_2 -> GetN();
+				gr_5_2 -> SetPoint(N,i,y);
 				break;
 			default:
 				cout << "\nNon riesco a inserire un elemento per S2" << endl;
@@ -625,37 +684,273 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	TCanvas* c_2 = new TCanvas("c_2","c_2",0,0,700,500);
-	c_2->cd();
-
-	for(int i=0;i<150;i++) gr_std2->SetPoint(gr_std2->GetN(),i,0);
+	TCanvas* meteo_conteggis2 = new TCanvas("meteo_conteggis2","meteo_conteggis2",0,0,700,500);
+	meteo_conteggis2->cd();
 
 
-	gr_std2->Draw("AP");
-	gr_std2 -> GetYaxis() -> SetRangeUser(3000,4500);
-	if(gr_02 -> GetN() != 0) gr_02->Draw("SAME P");
-	if(gr_12 -> GetN() != 0) gr_12->Draw("SAME P");
-	if(gr_22 -> GetN() != 0) gr_22->Draw("SAME P");
-	if(gr_32 -> GetN() != 0) gr_32->Draw("SAME P");
-	if(gr_42 -> GetN() != 0) gr_42->Draw("SAME P");
-	if(gr_52 -> GetN() != 0) gr_52->Draw("SAME P");
+	
+	gr_2_2 -> Draw("AP");		//grafico della nebbia, ahah
+
+	if(gr_0_2 -> GetN() != 0) gr_0_2 -> Draw("SAME AP");
+	if(gr_1_2 -> GetN() != 0) gr_1_2 -> Draw("SAME P");
+	if(gr_3_2 -> GetN() != 0) gr_3_2 -> Draw("SAME P");
+	if(gr_4_2 -> GetN() != 0) gr_4_2 -> Draw("SAME P");
+	if(gr_5_2 -> GetN() != 0) gr_5_2 -> Draw("SAME P");
 
 
-	c_2 -> Modified();
-	c_2 -> Update();
+	gr_0_2 -> GetXaxis() -> SetLimits(0, conteggiS1.size() + 10);
+	gr_0_2 -> GetXaxis() -> SetRangeUser(0, conteggiS1.size() + 10);
+
+	meteo_conteggis2 -> Modified();
+	meteo_conteggis2 -> Update();
 
 	cout << endl;
 	cout << "Andamento per s2:\n"
-		<< "Assolato" << "\t\tmedia = " << gr_02 -> GetMean(2) << "\tconteggi = " << gr_02 -> GetN() << "\n"
-		<< "Sereno (notte)" << "\t\tmedia = " << gr_12 -> GetMean(2) << "\tconteggi = " << gr_12 -> GetN() << "\n"
-		<< "Banchi di nebbia" << "\tmedia = " << gr_22 -> GetMean(2) << "\tconteggi = " << gr_22 -> GetN() << "\n"
-		<< "Nuvoloso" << "\t\tmedia = " << gr_32 -> GetMean(2) << "\tconteggi = " << gr_32 -> GetN() << "\n"
-		<< "Pioggie sparse" << "\t\tmedia = " << gr_42 -> GetMean(2) << "\tconteggi = " << gr_42 -> GetN() << "\n"
-		<< "Leggera foschia" << "\t\tmedia = " << gr_52 -> GetMean(2) << "\tconteggi = " << gr_52 -> GetN() << "\n"
+		<< "Assolato        " 	<< "\tmedia = " << gr_0_2 -> GetMean(2) << "\tconteggi = " << gr_0_2 -> GetN() << "\n"
+		<< "Sereno (notte)  " 	<< "\tmedia = " << gr_1_2 -> GetMean(2) << "\tconteggi = " << gr_1_2 -> GetN() << "\n"
+		<< "Banchi di nebbia" 	<< "\tmedia = " << gr_2_2 -> GetMean(2) << "\tconteggi = " << gr_2_2 -> GetN() << "\n"
+		<< "Nuvoloso        " 	<< "\tmedia = " << gr_3_2 -> GetMean(2) << "\tconteggi = " << gr_3_2 -> GetN() << "\n"
+		<< "Pioggie sparse  " 	<< "\tmedia = " << gr_4_2 -> GetMean(2) << "\tconteggi = " << gr_4_2 -> GetN() << "\n"
+		<< "Leggera foschia " 	<< "\tmedia = " << gr_5_2 -> GetMean(2) << "\tconteggi = " << gr_5_2 -> GetN() << "\n"
 		<< endl;
 
 
-	*/
+	//rate vs pressione s2
+
+	TCanvas* conteggi_vs_pressione_s2 = new TCanvas("conteggi_vs_pressione_s2","conteggi_vs_pressione_s2",0,0,700,500);
+	conteggi_vs_pressione_s2 -> Divide(1,2);
+
+	conteggi_vs_pressione_s2 -> cd(1);
+	gr_std2 -> Draw("AP");
+
+	conteggi_vs_pressione_s2 -> cd(2);
+	gr_pressione -> Draw("AP");
+
+
+	//rate vs temperatura s2
+
+	TCanvas* conteggi_vs_temperatura_s2 = new TCanvas("conteggi_vs_temperatura_s2","conteggi_vs_temperatura_s2",0,0,700,500);
+	conteggi_vs_temperatura_s2 -> Divide(1,2);
+
+	conteggi_vs_temperatura_s2 -> cd(1);
+	gr_std2 -> Draw("AP");
+
+	conteggi_vs_temperatura_s2 -> cd(2);
+	gr_temperatura -> Draw("AP");
+
+	double mean_rate_s2 = gr_std2 -> GetMean(2);
+
+	cout << "temperatura media: " << mean_temp << endl;
+	cout << "pressione media: " << mean_press << endl;
+	cout << "rate medio (s2): " << mean_rate_s2 << endl;
+
+	//attesa : I = (I0+ALFA(P-P0) + BETA (T-T0) )*I0
+	TCanvas* rate_reale_vs_atteso_s2 = new TCanvas("rate_reale_vs_atteso_s2","rate_reale_vs_atteso_s2",0,0,700,500);
+	rate_reale_vs_atteso_s2 -> Divide(1,2);
+
+	TGraph* gr_atteso_s2 = new TGraph;
+	gr_atteso_s2 -> SetMarkerColor(kBlack);
+	gr_atteso_s2 -> SetMarkerSize(1);
+	gr_atteso_s2 -> SetMarkerStyle(8);
+
+
+	for(int i = 0; i < conteggiS2.size(); i++){
+		int j = find_nearest(i + ORA_START); //trova l'indice che corrisponde all'ora più vicina
+
+		double I_0 = mean_rate_s2;
+		int N;
+		N = gr_atteso_s2 -> GetN();
+
+		int temp = v_date[j] -> Get_temp();
+		double press = v_date[j] -> Get_press();
+
+		double y =I_0 + I_0*(ALFA*(mean_press - press) + BETA*(mean_temp - temp));
+
+		gr_atteso_s2 -> SetPoint(N,i,y);
+	}
+
+	rate_reale_vs_atteso_s2 -> cd(1);
+	gr_std2 -> Draw("AP");
+
+	rate_reale_vs_atteso_s2 -> cd(2);
+	gr_atteso_s2 -> Draw("AP");
+
+//andamento doppie
+
+	TGraph* gr_stdd= new TGraph;                   
+	gr_stdd -> SetMarkerColor(kBlack);
+	gr_stdd -> SetMarkerSize(1);
+	gr_stdd -> SetMarkerStyle(8);
+
+	TGraph* gr_0_d = new TGraph;		//sole
+	gr_0_d -> SetMarkerColor(kYellow);
+	gr_0_d -> SetMarkerSize(1);
+	gr_0_d -> SetMarkerStyle(8);
+
+	TGraph* gr_1_d = new TGraph;		//sereno(notte)             <-------------
+	gr_1_d -> SetMarkerColor(kBlue + 4);
+	gr_1_d -> SetMarkerSize(1);
+	gr_1_d -> SetMarkerStyle(8);
+
+	TGraph* gr_2_d = new TGraph;		//nebbia
+	gr_2_d -> SetMarkerColor(kGray + 1);
+	gr_2_d -> SetMarkerSize(1);
+	gr_2_d -> SetMarkerStyle(8);
+
+	TGraph* gr_3_d = new TGraph;		//nuvoloso
+	gr_3_d -> SetMarkerColor(kGray + 2);
+	gr_3_d -> SetMarkerSize(1);
+	gr_3_d -> SetMarkerStyle(8);
+
+	TGraph* gr_4_d = new TGraph;		//pioggia
+	gr_4_d -> SetMarkerColor(kCyan - 3);
+	gr_4_d -> SetMarkerSize(1);
+	gr_4_d -> SetMarkerStyle(8);
+
+	TGraph* gr_5_d = new TGraph;		//poca nebbia
+	gr_5_d -> SetMarkerColor(kGray);
+	gr_5_d -> SetMarkerSize(1);
+	gr_5_d -> SetMarkerStyle(8);
+	
+
+	for(int i = 0; i < doppie.size(); i++){
+		int j = find_nearest(i + ORA_START); //trova l'indice che corrisponde all'ora più vicina
+
+		string meteo = v_date[j] -> Get_type();
+
+		int caso = tipe_to_val(meteo); //cerca nel dizionario a quale valore corrisponde
+
+		double y;
+		if(i > 0) y = (doppie[i] - doppie[i-1]) / 60;
+		else y = doppie[i] / 60;
+		int N;
+
+		N = gr_stdd -> GetN();
+		gr_stdd -> SetPoint(N,i,y);
+
+		switch(caso){
+			case 0: 
+				N = gr_0_d -> GetN();
+				gr_0_d -> SetPoint(N,i,y);
+				break;
+			case 1: 
+				N = gr_1_d -> GetN();
+				gr_1_d -> SetPoint(N,i,y);
+				break;
+			case 2: 
+				N = gr_2_d -> GetN();
+				gr_2_d -> SetPoint(N,i,y);
+				break;
+			case 3: 
+				N = gr_3_d -> GetN();
+				gr_3_d -> SetPoint(N,i,y);
+				break;
+			case 4: 
+				N = gr_4_d -> GetN();
+				gr_4_d -> SetPoint(N,i,y);
+				break;
+			case 5: 
+				N = gr_5_d -> GetN();
+				gr_5_d -> SetPoint(N,i,y);
+				break;
+			default:
+				cout << "\nNon riesco a inserire un elemento per le doppie" << endl;
+				break;
+		}
+	}
+
+	TCanvas* meteo_conteggisd = new TCanvas("meteo_conteggisd","meteo_conteggisd",0,0,700,500);
+	meteo_conteggisd->cd();
+
+
+	
+	gr_2_d -> Draw("AP");		//grafico della nebbia, ahah
+
+	if(gr_0_d -> GetN() != 0) gr_0_d -> Draw("SAME AP");
+	if(gr_1_d -> GetN() != 0) gr_1_d -> Draw("SAME P");
+	if(gr_3_d -> GetN() != 0) gr_3_d -> Draw("SAME P");
+	if(gr_4_d -> GetN() != 0) gr_4_d -> Draw("SAME P");
+	if(gr_5_d -> GetN() != 0) gr_5_d -> Draw("SAME P");
+
+
+	gr_0_d -> GetXaxis() -> SetLimits(0, doppie.size() + 10);
+	gr_0_d -> GetXaxis() -> SetRangeUser(0, doppie.size() + 10);
+
+	meteo_conteggisd -> Modified();
+	meteo_conteggisd -> Update();
+
+	cout << endl;
+	cout << "Andamento per le doppie:\n"
+		<< "Assolato        " 	<< "\tmedia = " << gr_0_d -> GetMean(2) << "\tconteggi = " << gr_0_d -> GetN() << "\n"
+		<< "Sereno (notte)  " 	<< "\tmedia = " << gr_1_d -> GetMean(2) << "\tconteggi = " << gr_1_d -> GetN() << "\n"
+		<< "Banchi di nebbia" 	<< "\tmedia = " << gr_2_d -> GetMean(2) << "\tconteggi = " << gr_2_d -> GetN() << "\n"
+		<< "Nuvoloso        " 	<< "\tmedia = " << gr_3_d -> GetMean(2) << "\tconteggi = " << gr_3_d -> GetN() << "\n"
+		<< "Pioggie sparse  " 	<< "\tmedia = " << gr_4_d -> GetMean(2) << "\tconteggi = " << gr_4_d -> GetN() << "\n"
+		<< "Leggera foschia " 	<< "\tmedia = " << gr_5_d -> GetMean(2) << "\tconteggi = " << gr_5_d -> GetN() << "\n"
+		<< endl;
+
+
+	//rate vs pressione doppie
+
+	TCanvas* conteggi_vs_pressione_sd = new TCanvas("conteggi_vs_pressione_sd","conteggi_vs_pressione_sd",0,0,700,500);
+	conteggi_vs_pressione_sd -> Divide(1,2);
+
+	conteggi_vs_pressione_sd -> cd(1);
+	gr_stdd -> Draw("AP");
+
+	conteggi_vs_pressione_sd -> cd(2);
+	gr_pressione -> Draw("AP");
+
+
+	//rate vs temperatura doppie
+
+	TCanvas* conteggi_vs_temperatura_sd = new TCanvas("conteggi_vs_temperatura_sd","conteggi_vs_temperatura_sd",0,0,700,500);
+	conteggi_vs_temperatura_sd -> Divide(1,2);
+
+	conteggi_vs_temperatura_sd -> cd(1);
+	gr_stdd -> Draw("AP");
+
+	conteggi_vs_temperatura_sd -> cd(2);
+	gr_temperatura -> Draw("AP");
+
+	double mean_rate_sd = gr_stdd -> GetMean(2);
+
+	cout << "temperatura media: " << mean_temp << endl;
+	cout << "pressione media: " << mean_press << endl;
+	cout << "rate medio (doppie): " << mean_rate_sd << endl;
+
+ //attesa : I = (I0+ALFA(P-P0) + BETA (T-T0) )*I0
+	TCanvas* rate_reale_vs_atteso_sd = new TCanvas("rate_reale_vs_atteso_sd","rate_reale_vs_atteso_sd",0,0,700,500);
+	rate_reale_vs_atteso_sd -> Divide(1,2);
+
+	TGraph* gr_atteso_sd = new TGraph;
+	gr_atteso_sd -> SetMarkerColor(kBlack);
+	gr_atteso_sd -> SetMarkerSize(1);
+	gr_atteso_sd -> SetMarkerStyle(8);
+
+
+	for(int i = 0; i < doppie.size(); i++){
+		int j = find_nearest(i + ORA_START); //trova l'indice che corrisponde all'ora più vicina
+
+		double I_0 = mean_rate_sd;
+		int N;
+		N = gr_atteso_sd -> GetN();
+
+		int temp = v_date[j] -> Get_temp();
+		double press = v_date[j] -> Get_press();
+
+		double y =I_0 + I_0*(ALFA*(mean_press - press) + BETA*(mean_temp - temp));
+
+		gr_atteso_sd -> SetPoint(N,i,y);
+	}
+
+	rate_reale_vs_atteso_sd -> cd(1);
+	gr_stdd -> Draw("AP");
+
+	rate_reale_vs_atteso_sd -> cd(2);
+	gr_atteso_sd -> Draw("AP");
+
+//end
 
 	myApp.Run();
 
