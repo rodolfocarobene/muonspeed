@@ -35,12 +35,12 @@ renderebbe molto più breve e leggibile il codice
 #include "TH1D.h"
 #include "THistPainter.h"
 	
-#define DOWNLOAD false	
-#define START_DATE "20201110"				//per curl
+#define DOWNLOAD true	
+#define START_DATE "20201113"				//per curl
 #define END_DATE "20201119"			
 
-#define GIORNO_START 12			
-#define ORA_START 19				
+#define GIORNO_START 13			
+#define ORA_START 13				
 
 #define ALFA -0.15
 #define BETA 0.025
@@ -360,6 +360,7 @@ int main(int argc, char *argv[]){
 	  	curl_easy_cleanup(curl_handle);
 	 
 	  	curl_global_cleanup();	
+	  	cout << "Download completato\n" << endl;
 	}
 	
 	if(read_meteo_data() == false){
