@@ -39,14 +39,21 @@ class arg{
 				}
 			}
 
-			if(num == 0 || argv[num+1][0] == '-' || argv[num+1] == ""){
+			if(strcmp(com.c_str(), "-h") == 0 && num != 0){
+				is_present = true;
+				return;
+			}
+			if (argc == num + 1){
+				is_present = false;
+				return;
+			}
+			else if(num == 0 || argv[num+1][0] == '-'){ 
 				is_present = false;
 			}
 			else{
 				is_present = true;
 				arg_value = argv[num + 1];
 			}
-			if(strcmp(com.c_str(), "-h") == 0 && num != 0) is_present = true;
 		}
 
 		std::string GetValue(){

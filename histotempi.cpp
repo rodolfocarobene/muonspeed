@@ -59,6 +59,7 @@ int main(int argc, char *argv[]){
 
 	START_ARGS
 	args -> NewArg("-ns", "nanoseconds");
+	args -> NewArg("-f", "fit");
 	HELP_ARGS
 
 	TApplication myApp("myApp",NULL,NULL);
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]){
 
 	TH1D* th_tempi;
 
-	if(args->GetValid("-ns")) th_tempi = new TH1D("Tempi", "Tempi", 250, 40, 80);
+	if(args->GetValue("-ns")=="true") th_tempi = new TH1D("Tempi", "Tempi", 250, 40, 80);
 	else th_tempi = new TH1D("Tempi", "Tempi", 250, 0, 500);
 
 	vector<double> tempi;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]){
 	if(!(leggi_dati(tempi, argv[1]))) return 1;
 
 	for(int i = 0; i < tempi.size(); i++){
-		if(args->GetValid("-ns")){
+		if(args->GetValue("-ns")=="true"){
 			if(tempi[i] < 900) th_tempi -> Fill(tempi[i] * CONVERSIONETDC);
 		} 
 		else{
@@ -90,16 +91,21 @@ int main(int argc, char *argv[]){
 	th_tempi -> Draw();
 	
 
-	TF1 * mygaus = new TF1("mygaus","gaus",0,100);
-	th_tempi -> Fit("mygaus");
 
+	double errt, errc2, tmedio;
+
+	if(args->GetValue("-f")=="true"){
+		TF1 * mygaus = new TF1("mygaus","gaus",0,100);
+		th_tempi -> Fit("mygaus");
+		errt = mygaus -> GetParError(1); 
+		tmedio = mygaus -> GetParameter(1);
+	}
+	else{
+		tmedio = th_tempi -> GetMean();
+		errt = th_tempi -> GetMeanError();
+	}
 	
-
-	double errt = mygaus -> GetParError(1); 
-	double tmedio = mygaus -> GetParameter(1);
-
-	double errc2 = pow(CONV_A*errt,2)+pow((tmedio)*ERR_CONV_A,2)+pow(ERR_CONV_B,2);
-
+	errc2 = pow(CONV_A*errt,2)+pow((tmedio)*ERR_CONV_A,2)+pow(ERR_CONV_B,2);
 	cout << "\nTempo di volo = " << tmedio * CONVERSIONETDC << " +- " << sqrt(errc2) << endl;
 
 	
