@@ -62,12 +62,12 @@ class Data{
 			time_t raw = unix_time;
 			struct tm * timeinfo;
 			timeinfo = localtime(&raw);
-			string temp = asctime(timeinfo);
-			month = temp.substr(4,3);
-			day = stoi(temp.substr(8,10));
-			year = stoi(temp.substr(20,24));
-			ora = stoi(temp.substr(11,13));
-			min = stoi(temp.substr(14,16));
+			string str_temp = asctime(timeinfo);
+			month = str_temp.substr(4,3);
+			day = stoi(str_temp.substr(8,10));
+			year = stoi(str_temp.substr(20,24));
+			ora = stoi(str_temp.substr(11,13));
+			min = stoi(str_temp.substr(14,16));
 			press = 0;
 			temp = 0;
 		}
@@ -84,7 +84,7 @@ class Data{
 			temp = n;
 			return;
 		}
-		void Set_type(string t){
+		void Set_type(const string & t){
 			tipo = t;
 			return;
 		}
@@ -113,8 +113,7 @@ class Dictionary_val{
 		string name;
 		int val;
 	public:	
-		Dictionary_val(string nome, int v){
-			name = nome;
+		Dictionary_val(const string & nome, int v):name(nome){
 			val = v;
 		}
 		string Get_name(){
@@ -192,7 +191,7 @@ void load_dictionary(){
 	return;
 }
 
-int tipe_to_val(string meteo){
+int tipe_to_val(const string & meteo){
 	for(int i = 0; i < dizionario.size(); i++){
 		string temp = dizionario[i] -> Get_name();
 		if(temp == meteo) return dizionario[i] -> Get_val();
@@ -261,8 +260,6 @@ bool read_meteo_data(){
 
 	string line;
 	ifstream myfile ("meteo.txt");
-	string token;
-	int pos;
 	if(myfile.is_open()){
 		getline(myfile, line);
 		strtk::parse(line, "," ,lettura);
@@ -327,9 +324,7 @@ static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream){
   	return written;
 }
 
-int main(int argc, char *argv[]){
-
-	if(DOWNLOAD == true){
+void downloadMeteo(){
 		CURL *curl_handle;
 	  	static const char *pagefilename = "meteo.txt";
 	  	FILE *pagefile;
@@ -363,16 +358,9 @@ int main(int argc, char *argv[]){
 	 
 	  	curl_global_cleanup();	
 	  	cout << "Download completato\n" << endl;
-	}
-	
-	if(read_meteo_data() == false){
-		cout << "Lettura fallita" << endl;
-		return 1;
-	} 
-	else cout << "Lettura completata con successo" << endl;;
+}
 
-	load_dictionary();
-
+bool checkDictionaryIsComplete(){
 	for(int i = 0; i < v_date.size(); i++){
 		string x = v_date[i] -> Get_type();
 		bool presente = false;
@@ -382,10 +370,37 @@ int main(int argc, char *argv[]){
 			if(dict_type == x) presente = true;
 		}
 
-		if(presente == false) cout << "Nel dizionario non ho trovato: -" << x << "-" << endl;
+		if(presente == false){
+			cout << "Nel dizionario non ho trovato: -" << x << "-" << endl;
+			return false;
+		}
 	}
-
 	cout << "Dizionario completo \n" << endl;
+	return true;
+}
+
+TGraph * createSimpleTGraph(){
+	TGraph* graph = new TGraph;                   
+	gr_std1 -> SetMarkerSize(1);
+	gr_std1 -> SetMarkerStyle(8);
+	return graph
+}
+
+int main(int argc, char *argv[]){
+
+	if(DOWNLOAD == true)
+		downloadMeteo();
+	
+	if(read_meteo_data() == false){
+		cout << "Lettura fallita" << endl;
+		return 1;
+	} 
+	else cout << "Lettura completata con successo" << endl;;
+
+	load_dictionary();
+	if(checkDictionaryIsComplete() == false)
+		return 1;
+
 	//-------------------------------
 	//-------------------------------
 
@@ -394,7 +409,6 @@ int main(int argc, char *argv[]){
 
 	//vettori per le variabili da memorizzare
 	vector<double> conteggiS1, conteggiS2, doppie;
-	vector<int> ore;
 
 	//lettura del file di dati
 	if( !(leggi_dati(conteggiS1, conteggiS2, doppie, argc, argv)) ) return 1;
@@ -402,52 +416,34 @@ int main(int argc, char *argv[]){
 
 //andamento meteo per S1
 
-	TGraph* gr_std1= new TGraph;                   
+	TGraph* gr_std1 = createSimpleTGraph();                   
 	gr_std1 -> SetMarkerColor(kBlack);
-	gr_std1 -> SetMarkerSize(1);
-	gr_std1 -> SetMarkerStyle(8);
 
-	TGraph* gr_0= new TGraph;		//sole
+	TGraph* gr_0 = createSimpleTGraph(); 	//sole
 	gr_0 -> SetMarkerColor(kYellow);
-	gr_0 -> SetMarkerSize(1);
-	gr_0 -> SetMarkerStyle(8);
 
-	TGraph* gr_1= new TGraph;		//sereno(notte)             <-------------
+	TGraph* gr_1 = createSimpleTGraph();	//sereno(notte)             <-------------
 	gr_1 -> SetMarkerColor(kBlue + 4);
-	gr_1 -> SetMarkerSize(1);
-	gr_1 -> SetMarkerStyle(8);
 
-	TGraph* gr_2= new TGraph;		//nebbia
+	TGraph* gr_2 = createSimpleTGraph();		//nebbia
 	gr_2 -> SetMarkerColor(kGray + 1);
-	gr_2 -> SetMarkerSize(1);
-	gr_2 -> SetMarkerStyle(8);
 
-	TGraph* gr_3= new TGraph;		//nuvoloso
+	TGraph* gr_3 = createSimpleTGraph();		//nuvoloso
 	gr_3 -> SetMarkerColor(kGray + 2);
-	gr_3 -> SetMarkerSize(1);
-	gr_3 -> SetMarkerStyle(8);
 
-	TGraph* gr_4= new TGraph;		//pioggia
+	TGraph* gr_4 = createSimpleTGraph();		//pioggia
 	gr_4 -> SetMarkerColor(kCyan - 3);
-	gr_4 -> SetMarkerSize(1);
-	gr_4 -> SetMarkerStyle(8);
 
-	TGraph* gr_5= new TGraph;		//poca nebbia
+	TGraph* gr_5 = createSimpleTGraph();		//poca nebbia
 	gr_5 -> SetMarkerColor(kGray);
-	gr_5 -> SetMarkerSize(1);
-	gr_5 -> SetMarkerStyle(8);
 	
 	//---------------------------------------------
 
-	TGraph* gr_pressione = new TGraph;
+	TGraph* gr_pressione = createSimpleTGraph();
 	gr_pressione -> SetMarkerColor(kBlack);
-	gr_pressione -> SetMarkerSize(1);
-	gr_pressione -> SetMarkerStyle(8);
 
-	TGraph* gr_temperatura = new TGraph;
+	TGraph* gr_temperatura = createSimpleTGraph();
 	gr_temperatura -> SetMarkerColor(kBlack);
-	gr_temperatura -> SetMarkerSize(1);
-	gr_temperatura -> SetMarkerStyle(8);
 
 	//---------------------------------------------
 
@@ -475,8 +471,6 @@ int main(int argc, char *argv[]){
 		gr_pressione -> SetPoint(N,i,press);
 
 		//------------------------------
-
-
 
 		switch(caso){
 			case 0: 
