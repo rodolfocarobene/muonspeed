@@ -20,7 +20,7 @@ using namespace std;
 #define DEBUG false
 
 bool leggi_datiSCA(vector<int> & vec,  int channel, char* myFile){
-	int scal1, scal2, scal3, scal4, scal5, scal6, scal7, scal8, scal9, scal10, scal11, scal12;
+	int scal[12]; //scal1, scal2, scal3, scal4, scal5, scal6, scal7, scal8, scal9, scal10, scal11, scal12;
 	ifstream Infile;
 	Infile.open(myFile, fstream::in);
 	if (Infile.good () == false){
@@ -29,49 +29,13 @@ bool leggi_datiSCA(vector<int> & vec,  int channel, char* myFile){
 	}
 	cout << "Leggo file di dati " << myFile << endl;
 	while(true){
-		Infile >> scal1 >> scal2 >> scal3 >> scal4 >> scal5 >> scal6 >> scal7 >> scal8 >> scal9 >> scal10 >> scal11 >> scal12;
-		switch(channel){
-			case 1: 
-				vec.push_back(scal1);
-				break;
-			case 2: 
-				vec.push_back(scal2);
-				break;
-			case 3: 
-				vec.push_back(scal3);
-				break;
-			case 4: 
-				vec.push_back(scal4);
-				break;
-			case 5: 
-				vec.push_back(scal5);
-				break;
-			case 6: 
-				vec.push_back(scal6);
-				break;
-			case 7: 
-				vec.push_back(scal7);
-				break;
-			case 8: 
-				vec.push_back(scal8);
-				break;	
-			case 9: 
-				vec.push_back(scal9);
-				break;
-			case 10: 
-				vec.push_back(scal10);
-				break;
-			case 11: 
-				vec.push_back(scal11);
-				break;
-			case 12: 
-				vec.push_back(scal12);
-				break;	
-			default:
-				cout << "\nLa colonna nel define e' errata" << endl;
-				return 1;
-				break;
-		}
+		Infile >> scal[0] >> scal[1]
+			>> scal[2] >> scal[3]
+			>> scal[4] >> scal[5]
+			>> scal[6] >> scal[7]
+			>> scal[8] >> scal[9]
+			>> scal[10] >> scal[11];
+		vec.push_back(scal[channel-1]);
 		if (Infile.eof() == true) break;
 	}
 	Infile.close();
@@ -98,9 +62,8 @@ double getDev(vector<int> & vec, double mean){
 	return sum;
 }
 
-int main(int argc, char *argv[]){
-																													if (DEBUG == true)	cout << __LINE__ << endl;
-	if(argc < 2) return 1;
+bool checkHelpArg(int argc, char *argv[]){
+	if(argc < 2) return false;
 	if(strcmp(argv[1],"help")==0){
 		cout << "----------------------------------" << endl;
 		cout << "Scopo:\n"
@@ -109,9 +72,16 @@ int main(int argc, char *argv[]){
 			 << "\t ./leggiscaler file.txt"
 			 << "\t Da definire i canali utilizzati\n" << endl;
 		cout << "----------------------------------" << endl;
-		return 1;
+		return false;
 	}
+	return true;
+}
 
+int main(int argc, char *argv[]){
+																													if (DEBUG == true)	cout << __LINE__ << endl;
+	if(checkHelpArg(argc, argv) == false)
+		return 1;
+	
 	vector<int> singola0;
 	vector<int> singola1;
 	vector<int> doppie;

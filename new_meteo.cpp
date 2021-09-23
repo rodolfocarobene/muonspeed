@@ -68,6 +68,8 @@ class Data{
 			year = stoi(temp.substr(20,24));
 			ora = stoi(temp.substr(11,13));
 			min = stoi(temp.substr(14,16));
+			press = 0;
+			temp = 0;
 		}
 
 		void Print(){
