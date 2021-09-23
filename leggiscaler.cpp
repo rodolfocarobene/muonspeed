@@ -17,10 +17,8 @@ using namespace std;
 #define CHANNEL_SING1 	2			//s2
 #define CHANNEL_DOPP	3
 
-#define DEBUG false
-
 bool leggi_datiSCA(vector<int> & vec,  int channel, char* myFile){
-	int scal[12]; //scal1, scal2, scal3, scal4, scal5, scal6, scal7, scal8, scal9, scal10, scal11, scal12;
+	int scal[12]; 
 	ifstream Infile;
 	Infile.open(myFile, fstream::in);
 	if (Infile.good () == false){
@@ -77,8 +75,19 @@ bool checkHelpArg(int argc, char *argv[]){
 	return true;
 }
 
+void fillGraph(vector<int> singola, TGraphErrors * graph, vector<int> diff_singola){
+	double yn = 0;
+	for(int i = 0; i < singola.size(); i++){
+		double x = i;
+		int N = graph -> GetN();
+		double y = (singola[i] - yn0);
+		yn0 = singola[i];
+		graph -> SetPoint(N,x,y);
+		diff_singola.push_back(y);
+	}
+}
+
 int main(int argc, char *argv[]){
-																													if (DEBUG == true)	cout << __LINE__ << endl;
 	if(checkHelpArg(argc, argv) == false)
 		return 1;
 	
@@ -95,7 +104,6 @@ int main(int argc, char *argv[]){
 	leggi_datiSCA(doppie,CHANNEL_DOPP,argv[1]);
 
 	cout << "Lettura completata" << endl;
-
 
 	//-----------------------grafici-----------------------
 
@@ -122,10 +130,8 @@ int main(int argc, char *argv[]){
 		gr_sca -> SetPoint(N,x,y);
 		diff_doppie.push_back(y);
 	}
-																													if (DEBUG == true)	cout << __LINE__ << endl;
 
 	c_sca -> cd();
-
 	gr_sca -> Draw("AP");
 
 	//singole
@@ -153,23 +159,8 @@ int main(int argc, char *argv[]){
 	double yn0 = 0;
 	double yn1 = 0;
 
-	for(int i = 0; i < singola0.size(); i++){
-		double x = i;
-		int N = gr_sca0 -> GetN();
-		double y = (singola0[i] - yn0);
-		yn0 = singola0[i];
-		gr_sca0 -> SetPoint(N,x,y);
-		diff_singola0.push_back(y);
-	}
-																													if (DEBUG == true)	cout << __LINE__ << endl;
-	for(int i = 0; i < singola1.size(); i++){
-		double x = i;
-		int N = gr_sca1 -> GetN();
-		double y = (singola1[i] - yn1);
-		yn1 = singola1[i];
-		gr_sca1 -> SetPoint(N,x,y);
-		diff_singola1.push_back(y);
-	}
+	fillGraph(singola0, gr_sca0, diff_singola0);
+	fillGraph(singola1, gr_sca1, diff_singola1);
 
 	c_scasing -> Divide(1,2);
 
@@ -177,8 +168,6 @@ int main(int argc, char *argv[]){
 	gr_sca0 -> Draw("AP");
 	c_scasing -> cd(2);
 	gr_sca1 -> Draw("AP");
-
-																													if (DEBUG == true)	cout << __LINE__ << endl;
 
 	//-----------------------risultati-----------------------
 
