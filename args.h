@@ -29,8 +29,7 @@ class arg{
 		bool is_present;
 
 	public:
-		arg(int argc, char * argv[], std::string com){	// costruttore
-			arg_command = com;
+		arg(int argc, char * argv[], std::string com): arg_command(com){	// costruttore
 			int num = 0;
 			for(int i = 1; i < argc; i++){
 				if(strcmp(argv[i], com.c_str()) == 0){
@@ -70,7 +69,7 @@ class arg{
 			else return "null";
 		}
 
-		void Set_description(std::string des){
+		void Set_description(const std::string & des){
 			description = des;
 			return;
 		}
@@ -104,7 +103,7 @@ class argomenti{
 			}
 		}
 
-		std::string GetValue(std::string com){
+		std::string GetValue(const std::string & com){
 			for(int i = 0; i < arguments.size(); i++){
 				if(arguments[i] -> GetCom() == com){
 					return arguments[i] -> GetValue();
@@ -113,7 +112,7 @@ class argomenti{
 			return "null";
 		}
 
-		bool GetValid(std::string com){
+		bool GetValid(const std::string & com){
 			for(int i = 0; i < arguments.size(); i++){
 				if(arguments[i] -> GetCom() == com){
 					return arguments[i] -> GetValid();
