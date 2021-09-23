@@ -103,8 +103,6 @@ void montecarlo(TH1D* Esperimento, TH1D* Simulazione){
 
 	}
 
-//	cout << "doppie = " << doppie << endl;
-//	cout << "singolasim = " << singolasim << endl;
 
 	cout << "L'area in sovrapposizione e' il " << (double)doppie/singolasim*100 << " per cento di quella simulata" << endl;
 	cout << "L'area in sovrapposizione e' il " << (double)doppie/singolaesp*100 << " per cento di quella sperimentale" << endl;
@@ -112,9 +110,6 @@ void montecarlo(TH1D* Esperimento, TH1D* Simulazione){
 
 int main(int argc, char *argv[]){
 
-	//----------------------------------------------------------------------
-	// 						      visualization
-	//----------------------------------------------------------------------
 
 	START_ARGS
 	args -> NewArg("-f1", "Sperimentali");
@@ -204,12 +199,6 @@ int main(int argc, char *argv[]){
 	c_residuo->Update();
 
 	montecarlo(Esperimento, Simulazione);
-	//montecarlo(Esperimento, Esperimento);
 
 	myApp.Run();
 }
-
-
-
-
-
