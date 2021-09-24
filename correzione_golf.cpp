@@ -81,57 +81,17 @@ mt19937 gen(rd());
 uniform_real_distribution<> random_tau(-30, 0);
 uniform_real_distribution<> random_vth(0, 60);
 
-double rand_tau(){
-	return random_tau(gen);
-}
-
-double rand_vth(){
-	return random_vth(gen);
-}
-
 int main(int argc, char *argv[]){
 	if (DEBUG == true)	cout << "\nLETTURA DEI FILE" << endl;
 	//----------------------------------------------------------------------
 	// 						    lettura dei file
 	//----------------------------------------------------------------------
 
-	if(argc < 2){
-		cout << "Devi inserire la directory dei dati" << endl;
-		return 1;
-	}
-	double dist = 0;
-
 	vector<double> ampiezzas1;
 	vector<double> ampiezzas2;
 	vector<double> tempi;
 
-
-	string path = argv[1];
-	string path_adc0 = path + ADC0_FILE;
-	string path_adc1 = path + ADC1_FILE;
-	string path_tdc = path + TDC_FILE;
-
-	if(!(leggi_dati(ampiezzas1, CHAN_ADC0, &path_adc0[0]))) return 1;
-	if(!(leggi_dati(tempi, CHAN_TDC, &path_tdc[0]))) return 1;
-	if(!(leggi_dati(ampiezzas2, CHAN_ADC1, &path_adc1[0]))) return 1;
-
-	for(int i = 0; i < tempi.size(); i++){
-		if(tempi[i] != 0 && ampiezzas1[i] != 0 && ampiezzas2[i] != 0){
-			evento * temp = new evento(tempi[i], ampiezzas1[i], ampiezzas2[i]);
-			v_eventi.push_back(temp);
-		}
-		else{
-			dist++;
-		}
-	}
-
-	cout << "Eventi: " << v_eventi.size() << endl;
-	cout << "Eventi scartati: " << dist << endl;
-
-
-	if(argc < 3) dist = DISTANZA;
-	else dist = stod(argv[2]);
-
+	int dist = leggi_dati_cointener(ampiezzas1, ampiezzas2, tempi, argc, argv);
 
 	if (DEBUG == true)	cout << "\nVISUALIZATION" << endl;
 	//----------------------------------------------------------------------
@@ -141,9 +101,6 @@ int main(int argc, char *argv[]){
 	TApplication myApp("myApp",NULL,NULL);
 	gStyle -> SetOptFit(1111);
 	gStyle -> SetOptStat(1111);
-
-
-
 
 	if (DEBUG == true)	cout << "\nISTOGRAMMI ADC" << endl;
 	//----------------------------------------------------------------------

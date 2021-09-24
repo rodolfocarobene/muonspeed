@@ -1,4 +1,3 @@
-
 class evento{
 	public:
 		evento();
@@ -48,9 +47,6 @@ double myFun(double *x, double *par){
 	double D = x[0];
 	return C+A*log(B/(D-B));
 }
-
-
-
 
 void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
@@ -198,3 +194,73 @@ void setlimits(TH1D * myhisto, double * min, double * max){
 	cout << "bin: " << minbin << " - " << maxcountbin << " - " << maxbin << endl;
 }
 */
+
+double rand_adc(double min, double max){
+	double n;
+	do{
+		n = random_gen(gen);
+	}
+	while (n < min || n > max);
+	return n;
+}
+
+bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
+	double scal1;
+	ifstream Infile;
+	Infile.open(myFile, fstream::in);
+	if (Infile.good () == false){
+		cout << "Errore nell'apertura dei file " << myFile << endl;
+		return false;
+	}
+	cout << "Leggo file di dati " << myFile << endl;
+	while(true){
+		Infile >> scal1;
+		ampiezzas1.push_back(scal1);
+		if (Infile.eof() == true) break;
+		if (ampiezzas1.size()==300000) break;
+	}
+	Infile.close();
+	cout << "Numero dati: " << ampiezzas1.size() << endl;
+	return true;
+}
+
+double rand_tau(){
+	return random_tau(gen);
+}
+
+double rand_vth(){
+	return random_vth(gen);
+}
+
+int leggi_dati_cointer(vector<double> & ampiezzas1, vector<double> & ampiezzas2, vector<double> & tempi, int argc, char * argv[]){
+	if(argc < 2){
+		cout << "Devi inserire la directory dei dati" << endl;
+		return 0;
+	}
+	int dist = 0;
+
+
+	string path = argv[1];
+	string path_adc0 = path + ADC0_FILE;
+	string path_adc1 = path + ADC1_FILE;
+	string path_tdc = path + TDC_FILE;
+
+	if(!(leggi_dati(ampiezzas1, CHAN_ADC0, &path_adc0[0]))) return 1;
+	if(!(leggi_dati(tempi, CHAN_TDC, &path_tdc[0]))) return 1;
+	if(!(leggi_dati(ampiezzas2, CHAN_ADC1, &path_adc1[0]))) return 1;
+
+	for(int i = 0; i < tempi.size(); i++){
+		if(tempi[i] != 0 && ampiezzas1[i] != 0 && ampiezzas2[i] != 0){
+			evento * temp = new evento(tempi[i], ampiezzas1[i], ampiezzas2[i]);
+			v_eventi.push_back(temp);
+		}
+		else{
+			dist++;
+		}
+	}
+
+	cout << "Eventi: " << v_eventi.size() << endl;
+	cout << "Eventi scartati: " << dist << endl;
+	
+	return dist;
+}
