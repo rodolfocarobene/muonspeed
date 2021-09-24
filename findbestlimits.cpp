@@ -30,6 +30,8 @@
 #include "TLegend.h"
 #include "TLegendEntry.h"
 
+#include "libraryCoinc.h"
+
 using namespace std;
 
 #define DEBUG false
@@ -66,151 +68,8 @@ using namespace std;
 #define RITARDO 30.6
 #define E_RIT 2
 
-class evento{
-	public:
-		evento();
-		evento(double tdcval, double adc0val, double adc1val){
-			tdc = tdcval;
-			adc0 = adc0val;
-			adc1 = adc1val;			
-		};
-
-		double Get_tdc(){
-			return tdc;
-		}
-		double Get_adc0(){
-			return adc0;
-		}
-		double Get_adc1(){
-			return adc1;
-		}
-		
-				//correzione nuova sigmoid
-		double Get_tdc_corretto(double tau0, double vth0, double tau1, double vth1){
-			return tdc + tau0 * log(vth0/(adc0-vth0))  - 4/tau0 - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
-		}
-		double Get_tdc_adc0(double tau0, double vth0, double tau1, double vth1){
-			return tdc - tau0 * log(vth0/(adc0-vth0)) + 4/tau0;
-		}
-		double Get_tdc_adc1(double tau0, double vth0, double tau1, double vth1){
-			return tdc - tau1 * log(vth1/(adc1-vth1)) + 4/tau1;
-		}
-
-		
-	
-		double Get_tdc_off(double off0, double off1){
-			return - tdc + off0 + off1;
-		}
-	private:
-		double tdc;
-		double adc0;
-		double adc1;
-};
-
 vector<evento*> v_eventi;
 
-bool leggi_dati(vector<double> & ampiezzas1, int channel, char* myFile){
-	double scal1;
-	ifstream Infile;
-	Infile.open(myFile, fstream::in);
-	if (Infile.good () == false){
-		cout << "Errore nell'apertura dei file " << myFile << endl;
-		return false;
-	}
-	cout << "Leggo file di dati " << myFile << endl;
-	while(true){
-		Infile >> scal1;
-		ampiezzas1.push_back(scal1);
-		if (Infile.eof() == true) break;
-		if (ampiezzas1.size()==300000) break;
-	}
-	Infile.close();
-	cout << "Numero dati: " << ampiezzas1.size() << endl;
-	return true;
-}
-
-		// funzione sigmoide
-double myFun(double *x, double *par){		
-	double A = par[0];		//tau
-	double B = par[1];		//Vth
-	double C = par[2];		//offset
-	double D = x[0];
-	return C+A*log(B/(D-B));
-}
-
-
-
-
-void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
-	for(int i = mins1_graph; i <= maxs1_graph; i++){
-		double sum = 0;
-		double sumt = 0;
-		int count = 0;
-		double dev = 0;
-		for(int j = 0; j < v_eventi.size(); j++){
-			double adc0 = v_eventi[j] -> Get_adc0();
-			double adc1 = v_eventi[j] -> Get_adc1();
-
-			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
-
-			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i && limits){
-				count++;
-				sumt = sumt + tdc;
-			}
-		}
-		sumt = sumt / count;
-		for(int j = 0; j < v_eventi.size(); j++){
-			double adc0 = v_eventi[j] -> Get_adc0();
-			double adc1 = v_eventi[j] -> Get_adc1();
-
-			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
-			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc0 == i && limits){
-				dev = dev + pow(tdc-sumt,2)/(count -1);
-			}
-		}
-		dev = sqrt(dev) / sqrt(count);
-		if(count == 1) dev = E_TDC;
-		int N = g_adc0 -> GetN();
-		if(count ) g_adc0 -> SetPoint(N,i,sumt);
-		if(count ) g_adc0 -> SetPointError(N,E_ADC,dev);
-	}
-
-	for(int i = mins2_graph; i <= maxs2_graph; i++){
-		double sum = 0;
-		double sumt = 0;
-		int count = 0;
-		double dev = 0;
-		for(int j = 0; j < v_eventi.size(); j++){
-			double adc0 = v_eventi[j] -> Get_adc0();
-			double adc1 = v_eventi[j] -> Get_adc1();
-
-			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
-			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i && limits){
-				count++;
-				sumt = sumt + tdc;
-			}
-		}
-		sumt = sumt / count;
-		for(int j = 0; j < v_eventi.size(); j++){
-			double adc0 = v_eventi[j] -> Get_adc0();
-			double adc1 = v_eventi[j] -> Get_adc1();
-
-			bool limits = (adc0 > mins1_graph && adc0 < maxs1_graph) && (adc1 > mins2_graph && adc1 < maxs2_graph);
-			double tdc = v_eventi[j] -> Get_tdc();
-			if(adc1 == i && limits){
-				dev = dev + pow(tdc-sumt,2)/(count -1);
-			}
-		}
-		dev = sqrt(dev) / sqrt(count);
-		if(count == 1) dev = E_TDC;
-		int N = g_adc1 -> GetN();
-		if(count != 0) g_adc1 -> SetPoint(N,i,sumt);
-		if(count != 0) g_adc1 -> SetPointError(N,E_ADC,dev);
-	}
-}
 
 random_device rd; // obtain a random number from hardware
 mt19937 gen(rd());
