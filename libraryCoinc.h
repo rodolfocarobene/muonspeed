@@ -49,6 +49,19 @@ double myFun(double *x, double *par){
 }
 
 void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,double mins2_graph,double maxs2_graph,TGraphErrors* g_adc1){
+
+	g_adc0 -> GetXaxis() -> SetTitle("canali ADC");
+	g_adc0 -> GetYaxis() -> SetTitle("canali TDC");
+	g_adc0 -> SetMarkerStyle(20);
+	g_adc0 -> SetMarkerSize(0.5);
+	g_adc0 -> SetMarkerColor(kRed);
+
+	g_adc1 -> GetXaxis() -> SetTitle("canali ADC");
+	g_adc1 -> GetYaxis() -> SetTitle("canali TDC");
+	g_adc1 -> SetMarkerStyle(20);
+	g_adc1 -> SetMarkerSize(0.5);
+	g_adc1 -> SetMarkerColor(kBlue);
+
 	for(int i = mins1_graph; i <= maxs1_graph; i++){
 		double sum = 0;
 		double sumt = 0;
@@ -232,7 +245,7 @@ double rand_vth(){
 	return random_vth(gen);
 }
 
-int leggi_dati_cointer(vector<double> & ampiezzas1, vector<double> & ampiezzas2, vector<double> & tempi, int argc, char * argv[]){
+int leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas2, vector<double> & tempi, int argc, char * argv[]){
 	if(argc < 2){
 		cout << "Devi inserire la directory dei dati" << endl;
 		return 0;

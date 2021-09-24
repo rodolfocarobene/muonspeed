@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
 	vector<double> ampiezzas2;
 	vector<double> tempi;
 
-	int dist = leggi_dati_cointener(ampiezzas1, ampiezzas2, tempi, argc, argv);
+	int dist = leggi_dati_container(ampiezzas1, ampiezzas2, tempi, argc, argv);
 
 	if (DEBUG == true)	cout << "\nVISUALIZATION" << endl;
 	//----------------------------------------------------------------------
@@ -122,18 +122,6 @@ int main(int argc, char *argv[]){
 
 	TGraphErrors * g_adc0 = new TGraphErrors;
 	TGraphErrors * g_adc1 = new TGraphErrors;
-
-	g_adc0 -> GetXaxis() -> SetTitle("canali ADC");
-	g_adc0 -> GetYaxis() -> SetTitle("canali TDC");
-	g_adc0 -> SetMarkerStyle(20);
-	g_adc0 -> SetMarkerSize(0.5);
-	g_adc0 -> SetMarkerColor(kRed);
-
-	g_adc1 -> GetXaxis() -> SetTitle("canali ADC");
-	g_adc1 -> GetYaxis() -> SetTitle("canali TDC");
-	g_adc1 -> SetMarkerStyle(20);
-	g_adc1 -> SetMarkerSize(0.5);
-	g_adc1 -> SetMarkerColor(kBlue);
 
 	//------------find limiti per i grafici
 	double mins1_graph;
