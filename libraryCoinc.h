@@ -277,3 +277,24 @@ int leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas
 	
 	return dist;
 }
+
+void fillAdcHistos(TH1D* h_adc0, TH1D* h_adc1, TH1D* h2_adc01){
+	for(int i = 0; i < v_eventi.size(); i++){
+		double adc0 = v_eventi[i] -> Get_adc0();
+		double adc1 = v_eventi[i] -> Get_adc1();
+		double tdc = v_eventi[i] -> Get_tdc();
+
+		h_adc0 -> Fill(adc0);
+		h_adc1 -> Fill(adc1);
+		h2_adc01 -> Fill(adc0,adc1);
+	}
+}
+
+
+
+
+
+
+
+
+

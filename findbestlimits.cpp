@@ -87,7 +87,6 @@ int main(int argc, char *argv[]){
 
 	int dist = leggi_dati_container(ampiezzas1, ampiezzas2, tempi, argc, argv);
 
-	if (DEBUG == true)	cout << "\nVISUALIZATION" << endl;
 	//----------------------------------------------------------------------
 	// 						      visualization
 	//----------------------------------------------------------------------
@@ -96,7 +95,6 @@ int main(int argc, char *argv[]){
 	gStyle -> SetOptFit(1111);
 	gStyle -> SetOptStat(1111);
 
-	if (DEBUG == true)	cout << "\nISTOGRAMMI ADC" << endl;
 	//----------------------------------------------------------------------
 	// 						      istogrammi adc
 	//----------------------------------------------------------------------
@@ -105,20 +103,7 @@ int main(int argc, char *argv[]){
 	TH1D* h_adc1 = new TH1D("ADC S2", "ADC S2", 1000, 0, 1000);	
 	TH2D* h2_adc01 = new TH2D("ADC S1-S2", "ADC S21-S", 100, 0, 200, 100, 0, 400);
 
-	for(int i = 0; i < v_eventi.size(); i++){
-		double adc0 = v_eventi[i] -> Get_adc0();
-		double adc1 = v_eventi[i] -> Get_adc1();
-		double tdc = v_eventi[i] -> Get_tdc();
-
-		h_adc0 -> Fill(adc0);
-		h_adc1 -> Fill(adc1);
-		h2_adc01 -> Fill(adc0,adc1);
-	}
-
-	if (DEBUG == true)	cout << "\nGRAFICO INIZIALE" << endl;
-	//----------------------------------------------------------------------
-	// 						   grafico iniziale
-	//----------------------------------------------------------------------
+	fillAdcHistos(h_adc0, h_adc1, h2_adc01, v_eventi)
 
 	TGraphErrors * g_adc0 = new TGraphErrors;
 	TGraphErrors * g_adc1 = new TGraphErrors;
