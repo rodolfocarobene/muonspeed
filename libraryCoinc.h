@@ -93,8 +93,10 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		dev = sqrt(dev) / sqrt(count);
 		if(count == 1) dev = E_TDC;
 		int N = g_adc0 -> GetN();
-		if(count ) g_adc0 -> SetPoint(N,i,sumt);
-		if(count ) g_adc0 -> SetPointError(N,E_ADC,dev);
+		if(count != 0){
+			g_adc0 -> SetPoint(N,i,sumt);
+		  g_adc0 -> SetPointError(N,E_ADC,dev);
+		}
 	}
 
 	for(int i = mins2_graph; i <= maxs2_graph; i++){
@@ -127,8 +129,10 @@ void graficoiniziale(double mins1_graph,double maxs1_graph,TGraphErrors* g_adc0,
 		dev = sqrt(dev) / sqrt(count);
 		if(count == 1) dev = E_TDC;
 		int N = g_adc1 -> GetN();
-		if(count != 0) g_adc1 -> SetPoint(N,i,sumt);
-		if(count != 0) g_adc1 -> SetPointError(N,E_ADC,dev);
+		if(count != 0){
+			g_adc1 -> SetPoint(N,i,sumt);
+			g_adc1 -> SetPointError(N,E_ADC,dev);
+		}
 	}
 }
 
@@ -245,10 +249,10 @@ double rand_vth(){
 	return random_vth(gen);
 }
 
-int leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas2, vector<double> & tempi, int argc, char * argv[]){
+bool leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas2, vector<double> & tempi, int argc, char * argv[]){
 	if(argc < 2){
 		cout << "Devi inserire la directory dei dati" << endl;
-		return 0;
+		return false;
 	}
 	int dist = 0;
 
@@ -258,9 +262,9 @@ int leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas
 	string path_adc1 = path + ADC1_FILE;
 	string path_tdc = path + TDC_FILE;
 
-	if(!(leggi_dati(ampiezzas1, CHAN_ADC0, &path_adc0[0]))) return 1;
-	if(!(leggi_dati(tempi, CHAN_TDC, &path_tdc[0]))) return 1;
-	if(!(leggi_dati(ampiezzas2, CHAN_ADC1, &path_adc1[0]))) return 1;
+	if(!(leggi_dati(ampiezzas1, CHAN_ADC0, &path_adc0[0]))) return false;
+	if(!(leggi_dati(tempi, CHAN_TDC, &path_tdc[0]))) return false;
+	if(!(leggi_dati(ampiezzas2, CHAN_ADC1, &path_adc1[0]))) return false;
 
 	for(int i = 0; i < tempi.size(); i++){
 		if(tempi[i] != 0 && ampiezzas1[i] != 0 && ampiezzas2[i] != 0){
@@ -275,7 +279,7 @@ int leggi_dati_container(vector<double> & ampiezzas1, vector<double> & ampiezzas
 	cout << "Eventi: " << v_eventi.size() << endl;
 	cout << "Eventi scartati: " << dist << endl;
 	
-	return dist;
+	return true;
 }
 
 void fillAdcHistos(TH1D* h_adc0, TH1D* h_adc1, TH1D* h2_adc01){

@@ -235,6 +235,7 @@ int main(int argc, char *argv[]){
 	//----------------------------------------------------------------------
 
 	TCanvas* c_corretto = new TCanvas("c_corretto","c_corretto",0,0,700,500);
+	c_corretto -> cd();
 	TGraphErrors * g_adc0v2 = new TGraphErrors;
 	TGraphErrors * g_adc1v2 = new TGraphErrors;
 
@@ -252,22 +253,14 @@ int main(int argc, char *argv[]){
 
 
 	double tau0 	= fun_adc0 -> GetParameter(0);
-	double e_tau0 	= fun_adc0 -> GetParError(0);
-	double vth0 	= fun_adc0 -> GetParameter(1);
-	double e_vth0 	= fun_adc0 -> GetParError(1);
 	double off0 	= fun_adc0 -> GetParameter(2);
 
 	double tau1 	= fun_adc1 -> GetParameter(0);
-	double e_tau1 	= fun_adc1 -> GetParError(0);
 	double vth1 	= fun_adc1 -> GetParameter(1);
-	double e_vth1 	= fun_adc1 -> GetParError(1);
 	double off1 	= fun_adc1 -> GetParameter(2);
 
-
-	TMatrixD cor_0 = r_0 -> GetCorrelationMatrix();
 	TMatrixD cov_0 = r_0 -> GetCovarianceMatrix();
 
-	TMatrixD cor_1 = r_1 -> GetCorrelationMatrix();
 	TMatrixD cov_1 = r_1 -> GetCovarianceMatrix();
 
 	double cov_tv_0 = cov_0(0,1);
@@ -295,8 +288,10 @@ int main(int argc, char *argv[]){
 		sumt = sumt / count;
 		if(count == 1) dev = E_TDC;
 		int N = g_adc0v2 -> GetN();
-		if(count > 0) g_adc0v2 -> SetPoint(N,i,sumt);
-		if(count > 0) g_adc0v2 -> SetPointError(N,E_ADC,dev);
+		if(count > 0){
+			g_adc0v2 -> SetPoint(N,i,sumt);
+			g_adc0v2 -> SetPointError(N,E_ADC,dev);
+		}
 		//cout << "punto: " << N << " " << i << " " << sumt << endl;
 	}
 
@@ -316,8 +311,10 @@ int main(int argc, char *argv[]){
 		sumt = sumt / count;
 		if(count == 1) dev = E_TDC;
 		int N = g_adc1v2 -> GetN();
-		if(count > 0) g_adc1v2 -> SetPoint(N,i,sumt);
-		if(count > 0) g_adc1v2 -> SetPointError(N,E_ADC,dev);
+		if(count > 0){
+			g_adc1v2 -> SetPoint(N,i,sumt);
+			g_adc1v2 -> SetPointError(N,E_ADC,dev);
+		}
 	}
 
 

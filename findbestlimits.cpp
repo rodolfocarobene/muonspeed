@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
 	vector<double> ampiezzas2;
 	vector<double> tempi;
 
-	int dist = leggi_dati_container(ampiezzas1, ampiezzas2, tempi, argc, argv);
+	if(leggi_dati_container(ampiezzas1, ampiezzas2, tempi, argc, argv) == false) return 1;
 
 	//----------------------------------------------------------------------
 	// 						      visualization

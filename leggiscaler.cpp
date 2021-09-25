@@ -76,7 +76,6 @@ bool checkHelpArg(int argc, char *argv[]){
 }
 
 void fillGraph(vector<int> singola, TGraphErrors * graph, vector<int> diff_singola){
-	double yn = 0;
 	for(int i = 0; i < singola.size(); i++){
 		double x = i;
 		int N = graph -> GetN();
@@ -155,9 +154,6 @@ int main(int argc, char *argv[]){
 
 	gr_sca0 -> SetPoint(gr_sca0 -> GetN(), 0, 0);
 	gr_sca1 -> SetPoint(gr_sca1 -> GetN(), 0, 0);
-
-	double yn0 = 0;
-	double yn1 = 0;
 
 	fillGraph(singola0, gr_sca0, diff_singola0);
 	fillGraph(singola1, gr_sca1, diff_singola1);

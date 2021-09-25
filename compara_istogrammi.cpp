@@ -165,18 +165,15 @@ int main(int argc, char *argv[]){
 	Simulazione -> Draw();
 
 	TCanvas* c_tempi = new TCanvas("c_tempi","c_tempi",0,0,700,500);
+	c_tempi -> cd();
 
 	Esperimento -> Draw();
 	Simulazione -> Draw("same");
-
-
-	double pvalue = Esperimento -> Chi2Test(Simulazione,"CHI2");
 
 	double chi = 0;
 	int bin_chi = 50;;
 
 	TGraph* Residuo = new TGraph();
-
 	
 
 	for (int i=bin_chi; i<Esperimento->GetNbinsX()-75;i++){

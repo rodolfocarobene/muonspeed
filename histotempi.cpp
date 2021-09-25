@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
 	TCanvas* c_tempi;
 
 	c_tempi = new TCanvas("c_tempi","c_tempi",0,0,700,500);
-
+	c_tempi -> cd();
 	TH1D* th_tempi;
 
 	if(args->GetValue("-ns")=="true") th_tempi = new TH1D("Tempi", "Tempi", 250, 40, 80);

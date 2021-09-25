@@ -35,8 +35,6 @@ bool read_website(char* myFile){
 
 	string line;
 	ifstream myfile (myFile);
-	string token;
-	int pos;
 	if(myfile.is_open()){
 		getline(myfile, line);
 		strtk::parse(line, "," ,lettura);
@@ -111,7 +109,7 @@ int main(int argc, char *argv[]){
 
 	TCanvas* c_1 = new TCanvas("c_1","c_1",0,0,700,500);
 	TGraphErrors * g_1 = new TGraphErrors;
-
+	c_1 -> cd();
 	double x = 0;
 
 	for(int i = 0; i < traccia0.size(); i++){
@@ -123,30 +121,8 @@ int main(int argc, char *argv[]){
 	}
 	g_1 -> Draw();
 
-
-
-	TF1 * fun_std_0 	= new TF1("fun_std_0",myFun, 26,32,3);
-	TF1 * fun_sigm_0 	= new TF1("fun_sigm_0",mySigm, 26,32,3);
-	TF1 * fun_new 		= new TF1("fun_new",newFun, 26,32,3);
 	TF1 * fun_std_pow 	= new TF1("fun_std_pow",myFunPow, 26,32,4);
 
-
-
-	/*
-	fun_std_0 -> SetLineColor(kRed);
-
-	fun_std_0 -> SetParName(0, "Amp0");
-	fun_std_0 -> SetParName(1, "Tau0");
-	fun_std_0 -> SetParName(2, "Off0");
-
-	fun_std_0 -> SetParameter(0, -3);
-	fun_std_0 -> SetParameter(1, 3);
-	fun_std_0 -> SetParameter(2, 3);
-
-	TVirtualFitter::SetMaxIterations(20000);
-
-	TFitResultPtr r_0 = g_1 -> Fit("fun_std_0", "R S");
-	*/
 
 	fun_std_pow -> SetLineColor(kRed);
 
@@ -157,7 +133,7 @@ int main(int argc, char *argv[]){
 
 	TVirtualFitter::SetMaxIterations(20000);
 
-	TFitResultPtr r_0 = g_1 -> Fit("fun_std_pow", "R S M");
+	g_1 -> Fit("fun_std_pow", "R S M");
 
 
 	myApp.Run();
